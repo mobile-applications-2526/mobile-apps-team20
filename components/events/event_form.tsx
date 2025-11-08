@@ -1,3 +1,4 @@
+import { InterestTag } from "@/domain/model/enums/interest_tag";
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, TextInput, StyleSheet } from "react-native";
 
@@ -6,7 +7,7 @@ export interface EventFormData {
   title: string;
   description: string;
   image?: string;
-  interests?: string;
+  interests?: InterestTag[];
   city: string;
   placeName: string;
   startDate: string;
@@ -34,7 +35,7 @@ export default function EventForm({
       title: "",
       description: "",
       image: "",
-      interests: "",
+      interests: [],
       city: "",
       placeName: "",  
       startDate: "",
@@ -48,7 +49,7 @@ export default function EventForm({
       title: "",
       description: "",
       image: "",
-      interests: "",
+      interests: [],
       city: "",
       placeName: "",
       startDate: "",
@@ -78,12 +79,12 @@ export default function EventForm({
           onChangeText={(text) => setForm({ ...form, image: text })}
           style={styles.input}
         />
-        <TextInput
+        {/* <TextInput  //TODO: Change to multi-select dropdown later
           placeholder="Interests"
           value={form.interests}
           onChangeText={(text) => setForm({ ...form, interests: text })}
           style={styles.input}
-        />
+        /> */}
         <TextInput
           placeholder="City"
           value={form.city}
