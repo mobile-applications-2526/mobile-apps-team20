@@ -1,5 +1,5 @@
 import { EventFormData } from "@/components/events/event_form";
-import { EventRequestDTO } from "@/domain/dto/event_request_dto";
+import { EventRequestDTO } from "@/domain/model/dto/event_request_dto";
 
 
 export function mapFormToRequestDTO(form: EventFormData): EventRequestDTO {
