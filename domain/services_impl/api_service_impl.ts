@@ -24,8 +24,7 @@ export class ApiServiceImpl implements ApiService {
 
     // Request interceptor: attach access token if present
     this.client.interceptors.request.use(async (config) => {
-     // const token = await AsyncStorage.getItem("access_token");
-     const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqdWFuanVhbmdtb0BnbWFpbC5jb20iLCJpYXQiOjE3NjI2ODc3MDIsImV4cCI6MTc2MjY4OTUwMn0.V9-fHZva8YDpq6uZE_g194eyQBZ3Yies38aVsIwU600"
+     const token = await AsyncStorage.getItem("access_token");
       if (token) {
         config.headers = config.headers ?? {};
         config.headers.Authorization = `Bearer ${token}`;
