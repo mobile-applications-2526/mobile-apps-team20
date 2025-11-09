@@ -12,14 +12,16 @@ export default function EventCard({event}: { event: EventItem }) {
 
 const styles = StyleSheet.create({
   eventCard: {
-    backgroundColor: "#fff",
-    padding: 15,
+    backgroundColor: "#ffffffff",
+    padding: 45,
     borderRadius: 12,
+    marginTop: 10,
     marginBottom: 10,
     elevation: 2,
   },
   eventTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
+  fontSize: 18,
+  fontWeight: "600",
+  color: "black", 
+},
 });

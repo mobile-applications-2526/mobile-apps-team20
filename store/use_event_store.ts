@@ -48,7 +48,6 @@ export const useEventStore = create<EventStore>((set, get) => ({
       otherEvents: events, // From JSON to Entity
       loading: false
     });
-    console.log("Rendering EventCard with:", get().otherEvents);
   } catch (err: any) {
     set({ error: err.message || "Failed to fetch events", loading: false });
   }
