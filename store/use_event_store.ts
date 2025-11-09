@@ -1,7 +1,6 @@
 import { container } from "@/dependency_injection/container";
 import { EventMapper } from "@/domain/infrastructure/mappers/event_mapper";
 import { EventRequestDTO } from "@/domain/model/dto/event_request_dto";
-import { EventResponseDTO } from "@/domain/model/dto/event_response_dto";
 import { EventItem } from "@/domain/model/entities/event_item";
 import { EventRepository } from "@/domain/repository/event_repository";
 import { create } from "zustand";
@@ -18,7 +17,7 @@ interface EventStore {
   // Actions
   fetchMyEvents: () => Promise<void>;
   fetchOtherEvents: (
-    fetchCallback: (repo: EventRepository) => Promise<EventResponseDTO[]>
+    fetchCallback: (repo: EventRepository) => Promise<EventItem[]>
   ) => Promise<void>;
   createEvent: (data: EventRequestDTO) => Promise<void>; 
   deleteMyEvent: (id: string) => Promise<void>;
@@ -40,15 +39,16 @@ export const useEventStore = create<EventStore>((set, get) => ({
   /**
    * Fetch other users' events (for discovery)
    */
-  fetchOtherEvents: async (fetchCallback: (repo: EventRepository) => Promise<EventResponseDTO[]>) => {
+  fetchOtherEvents: async (fetchCallback: (repo: EventRepository) => Promise<EventItem[]>) => {
   set({ loading: true, error: null });
   try {
     const repo = container.eventRepository;
     const events = await fetchCallback(repo);
     set({
-        otherEvents: events.map((event) => EventMapper.toEntity(event)), // From DTO to Entity
-        loading: false
+      otherEvents: events, // From JSON to Entity
+      loading: false
     });
+    console.log("Rendering EventCard with:", get().otherEvents);
   } catch (err: any) {
     set({ error: err.message || "Failed to fetch events", loading: false });
   }
@@ -64,7 +64,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
       set({
         myEvents: [
             ...get().myEvents,
-            EventMapper.toEntity(newEvent)
+            newEvent
         ],
         loading: false,
       });
