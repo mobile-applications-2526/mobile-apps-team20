@@ -1,4 +1,5 @@
 export enum InterestTag {
+  ALL = "ALL",
   SPORTS = "SPORTS",
   ART = "ART",
   MUSIC = "MUSIC",

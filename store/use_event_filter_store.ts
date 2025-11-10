@@ -9,7 +9,7 @@ interface EventFilterState {
 }
 
 export const useEventFilterStore = create<EventFilterState>((set, get) => ({
-    actualFilter: FilterTag.Interests, // Default filter
+    actualFilter: FilterTag.Location, // Default filter
 
     setFilterState: (newFilter: FilterTag) => {
         if(newFilter === get().actualFilter) return

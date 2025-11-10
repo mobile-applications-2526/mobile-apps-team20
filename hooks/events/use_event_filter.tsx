@@ -1,6 +1,5 @@
 import DropdownInput from "@/components/shared/drop_down_input";
 import { FilterTag, FilterTagLabel } from "@/domain/model/enums/filter_tag";
-import { InterestTag } from "@/domain/model/enums/interest_tag";
 import { useEventFilterStore } from "@/store/use_event_filter_store";
 import { useEventStore } from "@/store/use_event_store";
 
@@ -14,32 +13,6 @@ export function useEventFilter({
   const setSelectedFilter = useEventFilterStore(state => state.setFilterState)
 
   const filterOptions: [string, () => React.ReactNode][] = [
-      [
-        // TODO: Create a specific component for it
-        FilterTagLabel[FilterTag.Interests],
-          () => (
-            <DropdownInput
-              label="Introduce interests" 
-              onSubmit={(value) => {
-                const trimmed = value.trim();
-                if (!trimmed) return;
-
-                // Update the filter state
-                setSelectedFilter(FilterTag.Interests)
-
-                // Trigger async fetch from repository
-                fetchOtherEvents(async (repo) => {
-                    const events = await repo.getEventsByAnyTag([InterestTag.ART]); // TODO: Modify input
-                    return events;
-                });
-
-                onClose();
-              }}
-              onCancel={() => onClose()}
-            />
-          )
-      ],
-
       [
         FilterTagLabel[FilterTag.Location],
         () => (
