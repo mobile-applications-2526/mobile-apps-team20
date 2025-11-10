@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import EventFilterMenu from "@/components/shared/event_filter_menu";
 import { useEventFilter } from "@/hooks/events/use_event_filter";
+import ScrollableFilterButton from "@/components/shared/scrollable_filter_button";
 
 
 export default function DiscoverPage() {
@@ -32,9 +33,16 @@ export default function DiscoverPage() {
   // Overlay visibility for the filter (STACK overlay)
   const [filterVisible, setFilterVisible] = useState(false);
 
-  // Initial filter state
+  const filterButtons = Object.values(InterestTag)
+    .map(tag => ({
+      key: tag,
+      label: tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase(), // From ALL to All
+    }))
+
+
+  // Initial filter state (TODO: take the user location by default)
   useEffect(() => {
-    fetchOtherEvents((repo) => repo.getEventsByAnyTag([InterestTag.ART]));
+    fetchOtherEvents((repo) => repo.getEventsByLocation("Leuven"));
   }, []);
 
   function handleFormSubmit(data: EventFormData) {
@@ -51,27 +59,36 @@ export default function DiscoverPage() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.headerRow}>
-        <Text style={styles.header}>Discover new events</Text>
+        <Text style={styles.header}>Discover events 🌍</Text>
 
-        <EventFilterMenu
+        <View style={{marginRight: 12, marginTop: 5}}>
+          <EventFilterMenu
           filterOptions={useEventFilter({ onClose: closeFilter })}
           onSelect={(render) => {
             setActiveFilterRender(() => render);
             setFilterVisible(true);
           }}
         />
+        </View>
+      </View>
+
+      <View style={styles.header}>
+        <ScrollableFilterButton
+          data={filterButtons}
+          onChange={()=>{}}
+          selectedKey={InterestTag.ALL}
+          contentPaddingHorizontal={filterButtons.length}
+        />
       </View>
 
       {/* Events list */}
       <EventList
         events={otherEvents}
-        paddingBottom={0}
-        paddingTop={-23}
-        emptyComponentLabel="No events yet"
-        contentContainerStyle={{paddingTop: 10}}
+        emptyComponentLabel="No events yet 😕"
+        contentContainerStyle={{paddingTop: 0}}
       />
 
-      {/* FAB */}
+      {/* Add event button */}
       <TouchableOpacity style={styles.addButton} onPress={() => setShowForm(true)}>
         <Text style={styles.addButtonText}>＋</Text>
       </TouchableOpacity>
@@ -121,7 +138,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 30,
-    marginBottom: 10,
   },
 
   addButton: {
