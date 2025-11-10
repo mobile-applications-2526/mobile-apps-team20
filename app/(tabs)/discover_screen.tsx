@@ -25,8 +25,8 @@ export default function DiscoverPage() {
   useEffect(() => {
     //TODO: Get from user state when implemented
     console.log("Ejecutandooooo")
-    fetchOtherEvents((repo) => repo.getEventsByAnyTag([InterestTag.SPORTS]))
-  })
+    fetchOtherEvents((repo) => repo.getEventsByAnyTag([InterestTag.ART]))
+  },[])
 
   // Handle submit coming from the Create Event modal
   function handleFormSubmit(data: EventFormData) {
