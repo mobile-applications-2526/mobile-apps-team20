@@ -66,8 +66,9 @@ export default function DiscoverPage() {
       <EventList
         events={otherEvents}
         paddingBottom={0}
-        paddingTop={0}
+        paddingTop={-23}
         emptyComponentLabel="No events yet"
+        contentContainerStyle={{paddingTop: 10}}
       />
 
       {/* FAB */}
