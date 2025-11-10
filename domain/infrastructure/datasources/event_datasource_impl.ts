@@ -44,7 +44,7 @@ export class EventDataSourceImpl implements EventDataSource {
 
   /** POST /api/events (auth) */
   async createEvent(request: EventRequestDTO): Promise<EventItem> {
-    const response = await this.api.post<EventResponseDTO>(`/events`, request, true);
+    const response = await this.api.post<EventResponseDTO>(`/events`, request);
     return EventMapper.entityFromJson(response);
   }
 

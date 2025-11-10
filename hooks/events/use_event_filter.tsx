@@ -29,7 +29,7 @@ export function useEventFilter({
 
                 // Trigger async fetch from repository
                 fetchOtherEvents(async (repo) => {
-                    const events = await repo.getEventsByAnyTag([InterestTag.SPORTS]); // TODO: Modify input
+                    const events = await repo.getEventsByAnyTag([InterestTag.ART]); // TODO: Modify input
                     return events;
                 });
 
