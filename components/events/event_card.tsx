@@ -13,11 +13,9 @@ export default function EventCard({event}: { event: EventItem }) {
 const styles = StyleSheet.create({
   eventCard: {
     backgroundColor: "#ffffffff",
-    padding: 45,
-    borderRadius: 12,
-    marginTop: 10,
-    marginBottom: 10,
-    elevation: 2,
+    padding: 35,
+    borderRadius: 20,
+    elevation: 1,
   },
   eventTitle: {
   fontSize: 18,
