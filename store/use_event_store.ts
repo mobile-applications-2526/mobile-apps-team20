@@ -1,5 +1,4 @@
 import { container } from "@/dependency_injection/container";
-import { EventMapper } from "@/domain/infrastructure/mappers/event_mapper";
 import { EventRequestDTO } from "@/domain/model/dto/event_request_dto";
 import { EventItem } from "@/domain/model/entities/event_item";
 import { EventRepository } from "@/domain/repository/event_repository";
