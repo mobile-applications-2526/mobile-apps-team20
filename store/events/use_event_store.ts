@@ -5,14 +5,17 @@ import { getErrorMessage } from "@/shared/error_utils";
 import { EventRequestDTO } from "@/domain/model/dto/events/event_request_dto";
 import { EventItem } from "@/domain/model/entities/events/event_item";
 import { EventRepository } from "@/domain/repository/events/event_repository";
+import { InterestTag } from "@/domain/model/enums/interest_tag";
 
 interface EventStore {
   myEvents: EventItem[];
   otherEvents: EventItem[];
+  filteredEvents: EventItem[];
   loading: boolean;
   error: string | null;
   eventRepository: EventRepository;
 
+  updateFilteredEvents: (interest: InterestTag) => void
   fetchMyEvents: () => Promise<void>;
   fetchOtherEvents: (
     fetchCallback: (repo: EventRepository) => Promise<EventItem[]>
@@ -24,6 +27,7 @@ interface EventStore {
 export const useEventStore = create<EventStore>((set, get) => ({
   myEvents: [],
   otherEvents: [],
+  filteredEvents: [],
   eventRepository: container.eventRepository,
   loading: false,
   error: null,
@@ -59,6 +63,14 @@ export const useEventStore = create<EventStore>((set, get) => ({
     } catch (err: unknown) {
       set({ error: getErrorMessage(err), loading: false });
     }
+  },
+
+  updateFilteredEvents: (interest: InterestTag) => {
+    set({
+      filteredEvents: get().otherEvents.filter((event) =>
+        event.interests.includes(interest)
+      )
+    });
   },
 
   /**
