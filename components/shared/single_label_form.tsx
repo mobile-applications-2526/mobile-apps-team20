@@ -1,60 +1,67 @@
 import React, { useMemo, useState } from "react";
 import {
-  View,
+  KeyboardTypeOptions,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  KeyboardTypeOptions,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
-export default function AuthenticationFormView({
-  formLabel = "",
-  submitLabel = "Submit",
-  placeholder = "",
-  keyboardType = "default",
-  onEmptyFormSubmitedMessage = "Please fill in all required fields.",
-  onFormSubmit,
-}: {
+type Props = {
   formLabel?: string;
   placeholder?: string;
   submitLabel?: string;
   onEmptyFormSubmitedMessage?: string;
   keyboardType?: KeyboardTypeOptions;
+  labelSpacing?: number;           
   onFormSubmit: (content: string) => void;
-}) {
+  loading?: boolean;
+  renderLoading: () => React.ReactNode;  // Custom loading
+};
+
+export default function SingleLabelForm({
+  formLabel = "",
+  submitLabel = "Submit",
+  placeholder = "",
+  keyboardType = "default",
+  onEmptyFormSubmitedMessage = "Please fill in all required fields.",
+  labelSpacing = 2,
+  onFormSubmit,
+  loading,
+  renderLoading,
+}: Props) {
   const [content, setContent] = useState("");
   const [touched, setTouched] = useState(false);
 
-  // Compute validation errors
   const error = useMemo(() => {
     if (!touched) return "";
-
     if (!content.trim()) return onEmptyFormSubmitedMessage;
-
     if (keyboardType !== "email-address") return "";
-
-    // Simple email pattern for basic validation
     const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!pattern.test(content.trim())) {
       return `Please enter a valid ${formLabel || "email"} address.`;
     }
-
     return "";
   }, [content, touched, keyboardType, formLabel, onEmptyFormSubmitedMessage]);
 
   const isValid = !error && content.trim().length > 0;
 
+  const handleSubmit = () => {
+    setTouched(true);
+    if (!isValid) return;
+    onFormSubmit(content.trim());
+  };
+
   return (
     <View>
+      {/* Label (pegado al input) */}
+      {!!formLabel && (
+        <Text style={[styles.label, { marginBottom: labelSpacing }]}>{formLabel}</Text>
+      )}
+
       {/* Input */}
-      <View
-        style={[
-          styles.inputWrap,
-          touched && !!error && styles.inputWrapError,
-        ]}
-      >
+      <View style={[styles.inputWrap, touched && !!error && styles.inputWrapError]}>
         <TextInput
           value={content}
           onChangeText={setContent}
@@ -64,44 +71,54 @@ export default function AuthenticationFormView({
           keyboardType={keyboardType}
           autoCapitalize="none"
           autoCorrect={false}
+          autoComplete={keyboardType === "email-address" ? "email" : "off"}
+          textContentType={keyboardType === "email-address" ? "emailAddress" : "none"}
           style={styles.input}
           returnKeyType="done"
+          onSubmitEditing={handleSubmit}
         />
       </View>
 
-      {/* Error text */}
+      {/* Error */}
       {touched && !!error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      {/* Submit button */}
+      {/* Submit */}
       <TouchableOpacity
-        onPress={() => {
-          setTouched(true);
-          if (!isValid) return;
-          onFormSubmit(content.trim());
-        }}
+        onPress={handleSubmit}
         activeOpacity={0.9}
-        disabled={!isValid}
-        style={[
-          styles.continueBtn,
-          !isValid && styles.continueBtnDisabled,
-        ]}
+        disabled={!isValid || loading}
+        style={[styles.continueBtn, !isValid && styles.continueBtnDisabled]}
       >
-        <Text style={styles.continueText}>{submitLabel}</Text>
-        <Ionicons name="arrow-forward" size={18} color="#ffffff" />
+        {loading ? (
+          <>
+            {renderLoading()}
+          </>
+        ) : (
+          <>
+            <Text style={styles.continueText}>{submitLabel}</Text>
+          </>
+  )} 
+
+        
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  label: {
+    fontSize: 14,
+    color: "#374151",
+    fontWeight: "600",
+  },
   inputWrap: {
-    marginTop: 6,
     borderWidth: 1,
     borderColor: "#e5e7eb",
     borderRadius: 12,
     backgroundColor: "#ffffff",
     paddingHorizontal: 14,
     paddingVertical: 12,
+    marginTop: 8,
   },
   inputWrapError: {
     borderColor: "#ef4444",
@@ -111,7 +128,7 @@ const styles = StyleSheet.create({
     color: "#111827",
   },
   errorText: {
-    marginTop: -2,
+    marginTop: 4,            // ⬅️ pequeño respiro sin solaparse
     fontSize: 12,
     color: "#ef4444",
   },

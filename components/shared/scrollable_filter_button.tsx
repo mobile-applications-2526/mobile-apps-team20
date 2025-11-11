@@ -1,4 +1,5 @@
 // components/ChipFilterBar.tsx
+import { InterestTag } from "@/domain/model/enums/interest_tag";
 import React, { useRef, useEffect } from "react";
 import {
   FlatList,
@@ -8,15 +9,15 @@ import {
 } from "react-native";
 
 export type ButtonItem = {
-  key: string;      // id único
-  label: string;    // texto visible
+  key: InterestTag;      // unique id 
+  label: string;    // display text
 };
 
 type Props = {
   data: ButtonItem[];
   selectedKey: string;
-  onChange: (key: string) => void;
-  contentPaddingHorizontal?: number;  // padding lateral del carrusel (default 16)
+  onChange: (key: InterestTag) => void;
+  contentPaddingHorizontal?: number; 
 };
 
 export default function ScrollableFilterButton({
@@ -27,7 +28,7 @@ export default function ScrollableFilterButton({
 }: Props) {
   const listRef = useRef<FlatList<ButtonItem>>(null);
 
-  // Auto-scroll para asegurar que el chip activo queda visible
+  // Auto-scroll for assuring the selected item is visible
   useEffect(() => {
     const index = data.findIndex((d) => d.key === selectedKey);
     if (index >= 0) listRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
@@ -48,7 +49,10 @@ export default function ScrollableFilterButton({
         const active = item.key === selectedKey;
         return (
           <TouchableOpacity
-            onPress={() => onChange(item.key)}
+            onPress={() => {
+              if(item.key == selectedKey) return
+              onChange(item.key)
+            }}
             style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}
             activeOpacity={0.85}
           >
