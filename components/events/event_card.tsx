@@ -1,5 +1,5 @@
 // components/EventCard.tsx
-import { EventItem } from "@/domain/model/entities/event_item";
+import { EventItem } from "@/domain/model/entities/events/event_item";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function EventCard({event}: { event: EventItem }) {

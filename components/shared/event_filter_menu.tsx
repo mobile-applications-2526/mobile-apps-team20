@@ -1,8 +1,8 @@
+import { FilterTag, FilterTagLabel } from "@/domain/model/enums/filter_tag";
+import { useEventFilterStore } from "@/store/events/use_event_filter_store";
 import React, { useMemo } from "react";
 import { View } from "react-native";
 import DropdownButtonFilter, { FilterOption } from "./filter_dropdown_button";
-import { useEventFilterStore } from "@/store/use_event_filter_store";
-import { FilterTag, FilterTagLabel } from "@/domain/model/enums/filter_tag";
 
 interface Props {
   // Still accepting [label, render] from the hook to avoid changing the hook now

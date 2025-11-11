@@ -1,7 +1,7 @@
 import DropdownInput from "@/components/shared/drop_down_input";
 import { FilterTag, FilterTagLabel } from "@/domain/model/enums/filter_tag";
-import { useEventFilterStore } from "@/store/use_event_filter_store";
-import { useEventStore } from "@/store/use_event_store";
+import { useEventFilterStore } from "@/store/events/use_event_filter_store";
+import { useEventStore } from "@/store/events/use_event_store";
 
 export function useEventFilter({
   onClose

@@ -1,12 +1,12 @@
-import { EventItem } from "@/domain/model/entities/event_item";
+import { EventItem } from "@/domain/model/entities/events/event_item";
 import React from "react";
 import {
-  FlatList,
-  StyleSheet,
-  Text,
-  ViewStyle,
-  StyleProp,
-  View,
+    FlatList,
+    StyleProp,
+    StyleSheet,
+    Text,
+    View,
+    ViewStyle,
 } from "react-native";
 import EventCard from "./event_card";
 
