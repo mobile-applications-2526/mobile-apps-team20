@@ -5,8 +5,10 @@ import EventModalFormWrapper from "@/components/events/event_modal_form_wrapper"
 import EventFilterMenu from "@/components/shared/event_filter_menu";
 import ScrollableFilterButton from "@/components/shared/scrollable_filter_button";
 import { EventMapper } from "@/domain/infrastructure/mappers/event_mapper";
+import { EventItem } from "@/domain/model/entities/events/event_item";
 import { InterestTag } from "@/domain/model/enums/interest_tag";
 import { useEventFilter } from "@/hooks/events/use_event_filter";
+import { useEventFilterStore } from "@/store/events/use_event_filter_store";
 import { useEventStore } from "@/store/events/use_event_store";
 import React, { useEffect, useState } from "react";
 import {
@@ -21,10 +23,15 @@ import {
 
 export default function DiscoverPage() {
   const otherEvents = useEventStore((s) => s.otherEvents);
+  const eventsFilteredByInterest = useEventStore((s) => s.filteredEvents);
+  const updateFilteredEvents = useEventStore((s) => s.updateFilteredEvents);
   const createEvent = useEventStore((s) => s.createEvent);
   const fetchOtherEvents = useEventStore((s) => s.fetchOtherEvents);
+  const interestFilter = useEventFilterStore((s) => s.interestFilter);
+  const setInterest = useEventFilterStore((s) => s.setInterest);
 
   const [showForm, setShowForm] = useState(false);
+  let isInterestAll = interestFilter === InterestTag.ALL
 
   // Render function for the active filter (e.g., <DropdownInput />)
   const [activeFilterRender, setActiveFilterRender] =
@@ -39,6 +46,18 @@ export default function DiscoverPage() {
       label: tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase(), // From ALL to All
     }))
 
+  // Listen for changes in the interest filter and update the events accordingly
+  useEffect(() => {
+  // cuando cambian eventos o el filtro (y no es ALL), recalcula filtrados
+  if (interestFilter === InterestTag.ALL) return;
+  updateFilteredEvents(interestFilter);
+}, [otherEvents, interestFilter]);
+
+  
+  // Filter the events by the interest tag
+  const onFilterByInterestTagChanged = (tag: InterestTag) => {
+    setInterest(tag);
+  }
 
   // Initial filter state (TODO: take the user location by default)
   useEffect(() => {
@@ -71,19 +90,19 @@ export default function DiscoverPage() {
         />
         </View>
       </View>
-
+        {/* Interest Tag Filter */}
       <View style={styles.header}>
         <ScrollableFilterButton
           data={filterButtons}
-          onChange={()=>{}}
-          selectedKey={InterestTag.ALL}
+          onChange={onFilterByInterestTagChanged}
+          selectedKey={interestFilter}
           contentPaddingHorizontal={filterButtons.length}
         />
       </View>
 
       {/* Events list */}
       <EventList
-        events={otherEvents}
+        events={isInterestAll ? otherEvents : eventsFilteredByInterest}
         emptyComponentLabel="No events yet 😕"
         contentContainerStyle={{paddingTop: 0}}
       />

@@ -1,85 +1,40 @@
-import AuthenticationFormView from "@/components/auth/authentication_form_view";
-import { showErrorMessage } from "@/shared/show_error_message";
-import { showMessage } from "@/shared/show_message";
+import AuthFormView from "@/components/auth/auth_form_view";
+import { showErrorTop, showMessageTop } from "@/shared/show_toast_message";
 import { useUserAuthStore } from "@/store/auth/use_auth_store";
+import { useRouter } from "expo-router";
 import React from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
 
   const registerUser = useUserAuthStore((state) => state.register);
   const authError = useUserAuthStore((state) => state.error);
+  const isLoading = useUserAuthStore((state) => state.isLoading);
+  const router = useRouter();
+  
 
   const handleEmailSubmit = async (email: string) => {
     await registerUser(email);
-    if (authError) 
-      return showErrorMessage(`Register failed: ${authError}`);
-    showMessage("Please check your inbox to activate your account.")
+    if (authError) {
+      showErrorTop(`Register failed: ${authError}`);
+      return
+    }
+    showMessageTop("Please check your inbox to activate your account.")
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.select({ ios: "padding", android: undefined })}
-      >
-        <View style={styles.container}>
-          {/* Header */}
-          <Text style={styles.title}>Get Started</Text>
-          <Text style={styles.subtitle}>
-            Enter your email to register an account.
-          </Text>
-
-          {/* Email Label */}
-          <Text style={styles.label}>Email</Text>
-
-          <AuthenticationFormView
-            onFormSubmit={handleEmailSubmit}
-            formLabel="Email"
-            placeholder="example@email.com"
-            keyboardType="email-address"
-            onEmptyFormSubmitedMessage="Email field is required"
-            submitLabel="Continue with registration"
-          />
-
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+      <AuthFormView
+        title="Register an Account"
+        subtitle="Enter your email."
+        placeholder="you@example.com"
+        submitLabel="Continue with registration"
+        emptyFieldMessage="Email field is required"
+        showGoogleButton={false}
+        isLoading={isLoading}
+        onSubmit={handleEmailSubmit}
+        onGooglePress={() => router.push("/verify_email_code_screen")}
+        showFooter={false}
+        formLabel="Email"
+        keyboardType="email-address"
+      />
+    )
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  safe: { flex: 1, backgroundColor: "#ffffff" },
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    gap: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#111827",
-    marginTop: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#6b7280",
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  label: {
-    marginTop: 4,
-    fontSize: 14,
-    color: "#374151",
-    fontWeight: "600",
-  },  
-});
