@@ -5,7 +5,6 @@ import EventModalFormWrapper from "@/components/events/event_modal_form_wrapper"
 import EventFilterMenu from "@/components/shared/event_filter_menu";
 import ScrollableFilterButton from "@/components/shared/scrollable_filter_button";
 import { EventMapper } from "@/domain/infrastructure/mappers/event_mapper";
-import { EventItem } from "@/domain/model/entities/events/event_item";
 import { InterestTag } from "@/domain/model/enums/interest_tag";
 import { useEventFilter } from "@/hooks/events/use_event_filter";
 import { useEventFilterStore } from "@/store/events/use_event_filter_store";
