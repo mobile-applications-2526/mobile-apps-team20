@@ -11,16 +11,16 @@ export interface EventDataSource {
   getEventById(eventId: string): Promise<EventItem>;
 
   /** GET /api/events/by-any-tag?tags=MUSIC&tags=SPORTS */
-  getEventsByAnyTag(tags: InterestTag[]): Promise<EventItem[]>;
+  getEventsByAnyTag(tags: InterestTag[], page: number, size: number): Promise<EventItem[]>;
 
   /** GET /api/events/by-date?eventDate=YYYY-MM-DDTHH:mm:ss */
-  getEventsByDateAscending(eventDateISO: string): Promise<EventItem[]>;
+  getEventsByDateAscending(eventDateISO: string, page: number, size: number): Promise<EventItem[]>;
 
   /** GET /api/events/by-location?city=Leuven */
-  getEventsByLocation(city: string): Promise<EventItem[]>;
+  getEventsByLocation(city: string, page: number, size: number): Promise<EventItem[]>;
 
   /** GET /api/events/{eventId}/participants */
-  getEventParticipants(eventId: string): Promise<EventParticipant[]>;
+  getEventParticipants(eventId: string, page: number, size: number): Promise<EventParticipant[]>;
 
   /** POST /api/events (auth) */
   createEvent(request: EventRequestDTO): Promise<EventItem>;

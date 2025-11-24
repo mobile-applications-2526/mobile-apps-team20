@@ -21,28 +21,41 @@ export class EventDataSourceImpl implements EventDataSource {
   }
 
   /** GET /api/events/by-any-tag?tags=MUSIC&tags=SPORTS */
-  async getEventsByAnyTag(tags: InterestTag[]): Promise<EventItem[]> {
-    const response = await this.api.get<EventResponseDTO[]>(`/events/by-any-tag`, { tags });
+  async getEventsByAnyTag(tags: InterestTag[], page: number, size: number): Promise<EventItem[]> {
+    const response = await this.api.get<EventResponseDTO[]>(`/events/by-any-tag`, {
+      tags,
+      page: page,
+      size: size
+    });
     return response.map((event) => mapEventToFrontend(event))
   }
   
   /** GET /api/events/by-date?eventDate=2025-10-15T00:00:00 */
-  async getEventsByDateAscending(eventDateISO: string): Promise<EventItem[]> {
+  async getEventsByDateAscending(eventDateISO: string, page: number, size: number): Promise<EventItem[]> {
     const response = await this.api.get<EventResponseDTO[]>(`/events/by-date`, {
       eventDate: eventDateISO,
+      page: page,
+      size: size
     });
     return response.map((event) => mapEventToFrontend(event))
   }
   
   /** GET /api/events/by-location?city=Leuven */
-  async getEventsByLocation(city: string): Promise<EventItem[]> {
-    const response = await this.api.get<EventResponseDTO[]>(`/events/by-location`, { city });
+  async getEventsByLocation(city: string, page: number, size: number): Promise<EventItem[]> {
+    const response = await this.api.get<EventResponseDTO[]>(`/events/by-location`, {
+      city,
+      page: page,
+      size: size
+    });
     return response.map((event) => mapEventToFrontend(event))
   }
   
   /** GET /api/events/{eventId}/participants */
-  async getEventParticipants(eventId: string): Promise<EventParticipant[]> {
-    const response = await this.api.get<EventParticipantResponseDTO[]>(`/events/${eventId}/participants`);
+  async getEventParticipants(eventId: string, page: number, size: number): Promise<EventParticipant[]> {
+    const response = await this.api.get<EventParticipantResponseDTO[]>(`/events/${eventId}/participants`, {
+      page: page,
+      size: size
+    });
     return response.map((participant) => mapParticipantToFrontend(participant))
   }
   

@@ -3,6 +3,8 @@ import { mapProfileToFrontend, processImage } from "./user_profile_mapper";
 import { EventItem } from "@/domain/model/entities/events/event_item";
 import { EventOrganiser } from "@/domain/model/entities/events/event_organiser";
 import { InterestTag } from "@/domain/model/enums/interest_tag";
+import { EventFormData } from "@/components/events/event_form";
+import { EventRequestDTO } from "@/domain/model/dto/events/event_request_dto";
 
 
 export const mapEventToFrontend = (dto: EventResponseDTO): EventItem => {
@@ -35,4 +37,19 @@ export const mapEventToFrontend = (dto: EventResponseDTO): EventItem => {
         startDate: dto.startDate,
         endDate: dto.endDate
     };
+};
+
+export const mapEventFormToDTO = (formData: EventFormData): EventRequestDTO => {
+  return {
+    title: formData.title.trim(),
+    description: formData.description.trim(),
+    // If image is empty string, send undefined, otherwise trim it
+    image: formData.image?.trim() ? formData.image.trim() : undefined,
+    // Ensure interests is an array even if undefined in form
+    interests: formData.interests ?? [], 
+    city: formData.city.trim(),
+    placeName: formData.placeName.trim(),
+    startDate: formData.startDate,
+    endDate: formData.endDate,
+  };
 };

@@ -10,13 +10,13 @@ import { InterestTag } from "../../model/enums/interest_tag";
 export interface EventRepository { 
   getEventById(eventId: string): Promise<EventItem>;
 
-  getEventsByAnyTag(tags: InterestTag[]): Promise<EventItem[]>;
+  getEventsByAnyTag(tags: InterestTag[], page: number, size: number): Promise<EventItem[]>;
 
-  getEventsByDateAscending(eventDateISO: string): Promise<EventItem[]>;
+  getEventsByDateAscending(eventDateISO: string, page: number, size: number): Promise<EventItem[]>;
 
-  getEventsByLocation(city: string): Promise<EventItem[]>;
+  getEventsByLocation(city: string, page: number, size: number): Promise<EventItem[]>;
 
-  getEventParticipants(eventId: string): Promise<EventParticipant[]>;
+  getEventParticipants(eventId: string, page: number, size: number): Promise<EventParticipant[]>;
 
   createEvent(request: EventRequestDTO): Promise<EventItem>;
 

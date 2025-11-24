@@ -22,23 +22,23 @@ export class EventRepositoryImpl implements EventRepository {
   }
 
   /** Fetch events filtered by one or more interest tags */
-  async getEventsByAnyTag(tags: InterestTag[]): Promise<EventItem[]> {
-    return this.dataSource.getEventsByAnyTag(tags);
+  async getEventsByAnyTag(tags: InterestTag[], page: number, size: number): Promise<EventItem[]> {
+    return this.dataSource.getEventsByAnyTag(tags, page, size);
   }
 
   /** Fetch all events for a specific date (sorted ascending) */
-  async getEventsByDateAscending(eventDateISO: string): Promise<EventItem[]> {
-    return this.dataSource.getEventsByDateAscending(eventDateISO);
+  async getEventsByDateAscending(eventDateISO: string, page: number, size: number): Promise<EventItem[]> {
+    return this.dataSource.getEventsByDateAscending(eventDateISO, page, size);
   }
 
   /** Fetch all events in a given city */
-  async getEventsByLocation(city: string): Promise<EventItem[]> {
-    return this.dataSource.getEventsByLocation(city);
+  async getEventsByLocation(city: string, page: number, size: number): Promise<EventItem[]> {
+    return this.dataSource.getEventsByLocation(city, page, size);
   }
 
   /** Fetch all participants of an event */
-  async getEventParticipants(eventId: string): Promise<EventParticipant[]> {
-    return this.dataSource.getEventParticipants(eventId);
+  async getEventParticipants(eventId: string, page: number, size: number): Promise<EventParticipant[]> {
+    return this.dataSource.getEventParticipants(eventId, page, size);
   }
 
   /** Create a new event (requires authentication) */
