@@ -24,6 +24,8 @@ interface EventDetailStore {
   
   // Action to clear the state when the screen is left
   refreshEvent: () => void
+
+  reset: () => void
 }
 
 // Get the repository once
@@ -32,14 +34,29 @@ const eventRepository: EventRepository = container.eventRepository;
 export const useEventDetailStore = create<EventDetailStore>((set, get) => ({
   // Default state
   event: null,
-  isLoadingEvent: true, // Start in loading state
+  isLoadingEvent: false, 
   errorLoadingEvent: null,
 
   currentPage: 0,
   eventParticipants: [],
-  isLoadingParticipants: true,
+  isLoadingParticipants: false,
   errorLoadingParticipants: null,
   hasMoreParticipants: true,
+
+  reset: () => {
+    set({ 
+        isLoadingEvent: true, 
+        errorLoadingEvent: null, 
+        event: null,
+        
+        // Reset de participantes obligatorio para evitar bugs de paginación
+        eventParticipants: [],
+        currentPage: 0,
+        hasMoreParticipants: true,
+        errorLoadingParticipants: null,
+        isLoadingParticipants: false
+    });
+  },
   
 
   fetchEventParticipants: async (id: string) => {
@@ -71,8 +88,12 @@ export const useEventDetailStore = create<EventDetailStore>((set, get) => ({
    * Fetches a single event by ID and updates the store.
    */
   fetchEventById: async (id: string) => {
+    const state = get()
+    
+    if (state.isLoadingEvent) return;
+
     // Set loading state and clear previous errors/data
-    set({ isLoadingEvent: true, errorLoadingEvent: null, event: null }); 
+    state.reset()
     try {
       // Assuming your repo has a 'getEventById' method
       const fetchedEvent = await eventRepository.getEventById(id);
@@ -80,7 +101,11 @@ export const useEventDetailStore = create<EventDetailStore>((set, get) => ({
       // Load participants
       if (fetchedEvent.participantCount > 0) {
         await get().fetchEventParticipants(id)
-      } 
+      }
+      else {
+        // Clear participant state
+        set({ eventParticipants: [] })
+      }
 
       set({
         event: fetchedEvent,
@@ -106,6 +131,5 @@ export const useEventDetailStore = create<EventDetailStore>((set, get) => ({
     })
 
     state.fetchEventById(state.event.id)
-    
   },
 }));

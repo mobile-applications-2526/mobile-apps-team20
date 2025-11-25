@@ -3,7 +3,7 @@ import ParticipantCard from "@/components/events/participant_card";
 import FloatingBackButton from "@/components/shared/floating_back_button";
 import JoinEventButton from "@/components/shared/join_event_button";
 import StickyHeader from "@/components/shared/sticky_header";
-import { useEventDetailStore } from "@/store/events/user_event_details_store";
+import { useEventDetailStore } from "@/store/events/use_event_details_store";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import {
