@@ -6,20 +6,24 @@ import { getErrorMessage } from "@/shared/utils/error_utils";
 import { create } from "zustand";
 
 interface EventDetailStore {
-  event: EventItem | null;
-  eventParticipants: EventParticipant[] | null;
-  isLoadingEvent: boolean;
-  errorLoadingEvent: string | null;
-  isLoadingParticipants: boolean;
-  errorLoadingParticipants: string | null;
+  event: EventItem | null
+  eventParticipants: EventParticipant[]
+
+  isLoadingEvent: boolean
+  errorLoadingEvent: string | null
+
+  currentPage: number
+  isLoadingParticipants: boolean
+  errorLoadingParticipants: string | null
+  hasMoreParticipants: boolean
 
   fetchEventParticipants: (id: string) => Promise<void>
 
   // Action to fetch the event
-  fetchEventById: (id: string) => Promise<void>;
+  fetchEventById: (id: string) => Promise<void>
   
   // Action to clear the state when the screen is left
-  clearEvent: () => void;
+  refreshEvent: () => void
 }
 
 // Get the repository once
@@ -28,21 +32,36 @@ const eventRepository: EventRepository = container.eventRepository;
 export const useEventDetailStore = create<EventDetailStore>((set, get) => ({
   // Default state
   event: null,
-  eventParticipants: null,
   isLoadingEvent: true, // Start in loading state
-  isLoadingParticipants: true,
   errorLoadingEvent: null,
+
+  currentPage: 0,
+  eventParticipants: [],
+  isLoadingParticipants: true,
   errorLoadingParticipants: null,
+  hasMoreParticipants: true,
   
 
   fetchEventParticipants: async (id: string) => {
+    const state = get()
+
+    if (state.isLoadingParticipants) return;
+
+    if (!state.hasMoreParticipants) return
+
     // Set loading state and clear previous errors/data
     set({ isLoadingParticipants: true, errorLoadingParticipants: null }); 
     try {
-      // Assuming your repo has a 'getEventById' method
-      const eventParticipants = await eventRepository.getEventParticipants(id);
-      console.log(eventParticipants)
-      set({ eventParticipants: eventParticipants, isLoadingParticipants: false });
+      const callback = await eventRepository
+        .getEventParticipants(id, state.currentPage);
+
+      set({
+        eventParticipants: [...state.eventParticipants, ...callback.participants],
+        isLoadingParticipants: false,
+        currentPage: ++state.currentPage,
+        hasMoreParticipants: callback.hasMore
+      });
+
     } catch (err: unknown) {
       set({ errorLoadingParticipants: getErrorMessage(err), isLoadingParticipants: false });
     }
@@ -57,13 +76,17 @@ export const useEventDetailStore = create<EventDetailStore>((set, get) => ({
     try {
       // Assuming your repo has a 'getEventById' method
       const fetchedEvent = await eventRepository.getEventById(id);
-      console.log(JSON.stringify(fetchedEvent, null, 2))
       
-      // Load participants 
-      await get().fetchEventParticipants(id)
+      // Load participants
+      if (fetchedEvent.participantCount > 0) {
+        await get().fetchEventParticipants(id)
+      } 
 
-      console.log(fetchedEvent)
-      set({ event: fetchedEvent, isLoadingEvent: false });
+      set({
+        event: fetchedEvent,
+        isLoadingEvent: false,
+     });
+
     } catch (err: unknown) {
       set({ errorLoadingEvent: getErrorMessage(err), isLoadingEvent: false });
     }
@@ -72,7 +95,17 @@ export const useEventDetailStore = create<EventDetailStore>((set, get) => ({
   /**
    * Clears the store state. This must be called when the component unmounts.
    */
-  clearEvent: () => {
-    set({ event: null, isLoadingEvent: true, errorLoadingEvent: null });
+  refreshEvent: () => {
+    const state = get()
+    if (state.event == null) return
+
+    set({
+      currentPage: 0,
+      hasMoreParticipants: true,
+      eventParticipants: []
+    })
+
+    state.fetchEventById(state.event.id)
+    
   },
 }));
