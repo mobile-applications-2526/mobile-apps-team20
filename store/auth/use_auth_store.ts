@@ -17,6 +17,9 @@ interface UserAuthStore {
   errorLogin: string | null;
   isLoginLoading: boolean;
 
+  errorRegister: string | null;
+  isRegisterLoading: boolean;
+
   errorCode: string | null
   isLoadingCode: boolean
 
@@ -40,6 +43,9 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
 
   errorCode: null,
   isLoadingCode: false,
+
+  errorRegister: null,
+  isRegisterLoading: false,
 
   setUser: (user: User) => set({ user }),
   setAuthStatus: (status: AuthStatus) => set({ authStatus: status }),
