@@ -159,7 +159,7 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
       return true
 
     } catch (e: unknown) {
-      set({ errorLogin: getErrorMessage(e), isRegisterLoading: false });
+      set({ errorRegister: getErrorMessage(e), isRegisterLoading: false });
       return false
     }
   },
