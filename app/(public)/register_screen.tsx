@@ -7,16 +7,16 @@ import React from "react";
 export default function RegisterScreen() {
 
   const registerUser = useUserAuthStore((state) => state.register);
-  const authError = useUserAuthStore((state) => state.errorRegister);
   const isLoading = useUserAuthStore((state) => state.isRegisterLoading);
   const router = useRouter();
   
 
   const handleEmailSubmit = async (email: string) => {
-    await registerUser(email);
-    if (authError) {
-      showErrorTop(`Register failed: ${authError}`);
-      return
+    const success = await registerUser(email);
+
+    if (!success) {
+      const error = useUserAuthStore.getState().errorRegister
+      return showErrorTop(`Register failed: ${error}`);
     }
     showMessageTop("Please check your inbox to activate your account.")
   }

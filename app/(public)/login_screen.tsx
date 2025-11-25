@@ -5,13 +5,16 @@ import { useRouter } from "expo-router";
 
 export default function LoginScreen() {
   const loginUser = useUserAuthStore((state) => state.requestLoginEmail);
-  const authError = useUserAuthStore((state) => state.errorLogin);
   const isLoading = useUserAuthStore((state) => state.isLoginLoading);
   const router = useRouter();
 
   const handleEmailSubmit = async (email: string) => {
-    await loginUser(email);
-    if (authError) return showErrorTop(`Login failed: ${authError}`);
+    const success = await loginUser(email);
+
+    if (!success) {
+      const error = useUserAuthStore.getState().errorLogin
+      return showErrorTop(`Login failed: ${error}`);
+    }
     router.push("/(public)/verify_email_code_screen");
   };
 

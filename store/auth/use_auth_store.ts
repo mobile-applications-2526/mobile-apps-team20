@@ -25,12 +25,14 @@ interface UserAuthStore {
 
   setUser: (user: User) => void;
   setAuthStatus: (status: AuthStatus) => void;
-  setError: (message: string | null) => void;
+  setLoginError: (message: string | null) => void;
+  setRegisterError: (message: string | null) => void;
+  setCodeError: (message: string | null) => void;
   clearUser: () => Promise<void>;
 
-  requestLoginEmail: (email: string) => Promise<void>;
-  verifyEmailCode: (code: string) => Promise<void>;
-  register: (email: string) => Promise<void>;
+  requestLoginEmail: (email: string) => Promise<boolean>;
+  verifyEmailCode: (code: string) => Promise<boolean>;
+  register: (email: string) => Promise<boolean>;
   logout: () => Promise<void>;
 }
 
@@ -49,7 +51,9 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
 
   setUser: (user: User) => set({ user }),
   setAuthStatus: (status: AuthStatus) => set({ authStatus: status }),
-  setError: (message: string | null) => set({ errorLogin: message }),
+  setLoginError: (message: string | null) => set({ errorLogin: message }),
+  setCodeError: (message: string | null) => set({ errorCode: message }),
+  setRegisterError: (message: string | null) => set({ errorRegister: message }),
 
   clearUser: async () => {
     // Remove tokens and reset user/auth state
@@ -68,7 +72,7 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
   requestLoginEmail: async (email: string) => {
     const state = get();
 
-    if (state.isLoginLoading) return
+    if (state.isLoginLoading) return false
 
     try {
       set({ isLoginLoading: true, errorLogin: null });
@@ -79,8 +83,11 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
       state.setUser(new User(email, ""))
       set({ isLoginLoading: false })
 
+      return true
+
     } catch (e: unknown) {
       set({ errorLogin: getErrorMessage(e), isLoginLoading: false });
+      return false
     }
   },
 
@@ -91,11 +98,11 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
 
     const state = get()
 
-    if (state.isLoadingCode) return
+    if (state.isLoadingCode) return false
 
     if (!state.user) {
       set({ errorCode: "No email found. Please restart login." });
-      return;
+      return false;
     }
 
     const email = state.user.email;
@@ -124,8 +131,11 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
         isLoadingCode: false
       });
 
+      return true
+
     } catch (e: unknown) {
       set({ errorCode: getErrorMessage(e), isLoadingCode: false });
+      return false
     } 
 
   },
@@ -135,13 +145,22 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
    */
   register: async (email: string) => {
     try {
-      set({ isLoginLoading: true, errorLogin: null });
+      const state = get()
+
+      if (state.isRegisterLoading) return false
+
+      set({ isRegisterLoading: true, errorRegister: null });
+
       const request: UserAuthRequest = { email };
       await container.authRepository.register(request);
+
+      set({ isRegisterLoading: false })
+
+      return true
+
     } catch (e: unknown) {
-      set({ errorLogin: getErrorMessage(e) });
-    } finally {
-      set({ isLoginLoading: false });
+      set({ errorLogin: getErrorMessage(e), isRegisterLoading: false });
+      return false
     }
   },
 

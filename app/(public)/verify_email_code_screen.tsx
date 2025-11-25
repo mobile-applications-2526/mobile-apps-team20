@@ -8,15 +8,16 @@ import React from "react";
 export default function VerifyEmailCodeScreen() {
 
   const verifyEmailCode = useUserAuthStore((state) => state.verifyEmailCode);
-  const authError = useUserAuthStore((state) => state.errorCode);
   const isLoading = useUserAuthStore((state) => state.isLoadingCode);
   const router = useRouter()
   
 
   const handleCodeSubmit = async (code: string) => {
-    await verifyEmailCode(code);
-    if (authError) {
-      return showErrorTop(`Error: ${authError}`);
+    const success = await verifyEmailCode(code);
+
+    if (!success) {
+      const error = useUserAuthStore.getState().errorCode
+      return showErrorTop(`Verification code failed: ${error}`);
     }
     router.push("/discover_screen")
   }
