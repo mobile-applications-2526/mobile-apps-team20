@@ -1,8 +1,8 @@
 // app/(public)/_layout.tsx
-import { Stack, Redirect } from "expo-router";
-import { View, ActivityIndicator } from "react-native";
-import { useUserAuthStore } from "@/store/auth/use_auth_store";
 import { AuthStatus } from "@/domain/model/enums/AuthStatus";
+import { useUserAuthStore } from "@/store/auth/use_auth_store";
+import { Redirect, Stack } from "expo-router";
+import { ActivityIndicator, View } from "react-native";
 
 function FullscreenLoader() {
   return (
@@ -14,7 +14,7 @@ function FullscreenLoader() {
 
 export default function PublicLayout() {
   const authStatus = useUserAuthStore((s) => s.authStatus);
-  const isLoading  = useUserAuthStore((s) => s.isLoading);
+  const isLoading  = useUserAuthStore((s) => s.isLoginLoading);
 
   // Avoid flashing login/register while we’re still checking auth
   if (isLoading && authStatus === AuthStatus.CHECKING) {
@@ -23,7 +23,7 @@ export default function PublicLayout() {
 
   // If user is authenticated, do not allow entering public routes
   if (authStatus === AuthStatus.AUTHENTICATED) {
-    return <Redirect href="/(private)/discover_screen" />;
+    return <Redirect href="/(private)/(tabs)/discover_screen" />;
   }
 
   // Normal public stack

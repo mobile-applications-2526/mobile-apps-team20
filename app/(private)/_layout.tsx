@@ -1,9 +1,8 @@
 // app/(private)/_layout.tsx
-import { Tabs, Redirect, Stack } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { View, ActivityIndicator } from "react-native";
-import { useUserAuthStore } from "@/store/auth/use_auth_store";
 import { AuthStatus } from "@/domain/model/enums/AuthStatus";
+import { useUserAuthStore } from "@/store/auth/use_auth_store";
+import { Redirect, Stack } from "expo-router";
+import { ActivityIndicator, View } from "react-native";
 
 function FullscreenLoader() {
   return (
@@ -15,7 +14,7 @@ function FullscreenLoader() {
 
 export default function PrivateLayout() {
   const authStatus = useUserAuthStore((s) => s.authStatus);
-  const isLoading  = useUserAuthStore((s) => s.isLoading);
+  const isLoading  = useUserAuthStore((s) => s.isLoginLoading);
 
   // Block rendering while auth is being checked to avoid flicker
   if (isLoading || authStatus === AuthStatus.CHECKING) {
