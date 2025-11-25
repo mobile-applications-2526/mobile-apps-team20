@@ -1,8 +1,9 @@
 import { EventParticipant } from "@/domain/model/entities/events/event_participant";
-import { EventParticipantResponseDTO } from "../../model/dto/events/event_participant_response_dto";
 import { EventRequestDTO } from "../../model/dto/events/event_request_dto";
 import { EventItem } from "../../model/entities/events/event_item";
 import { InterestTag } from "../../model/enums/interest_tag";
+import { EventListRestult } from "@/domain/model/dto/events/event_list_result";
+import { EventParticipantListResult } from "@/domain/model/dto/events/event_participant_list_result";
 
 /**
  * Domain repository contract for Events
@@ -10,13 +11,13 @@ import { InterestTag } from "../../model/enums/interest_tag";
 export interface EventRepository { 
   getEventById(eventId: string): Promise<EventItem>;
 
-  getEventsByAnyTag(tags: InterestTag[], page: number, size: number): Promise<EventItem[]>;
+  getEventsByAnyTag(tags: InterestTag[], page: number): Promise<EventListRestult>;
 
-  getEventsByDateAscending(eventDateISO: string, page: number, size: number): Promise<EventItem[]>;
+  getEventsByDateAscending(eventDateISO: string, page: number, tags?: InterestTag[]): Promise<EventListRestult>;
 
-  getEventsByLocation(city: string, page: number, size: number): Promise<EventItem[]>;
+  getEventsByLocation(city: string, page: number, tags?: InterestTag[]): Promise<EventListRestult>;
 
-  getEventParticipants(eventId: string, page: number, size: number): Promise<EventParticipant[]>;
+  getEventParticipants(eventId: string, page: number): Promise<EventParticipantListResult>;
 
   createEvent(request: EventRequestDTO): Promise<EventItem>;
 

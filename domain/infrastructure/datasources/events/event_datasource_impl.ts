@@ -10,9 +10,28 @@ import { EventRequestDTO } from "@/domain/model/dto/events/event_request_dto";
 import { mapEventToFrontend } from "../../mappers/event_mapper";
 import { EventParticipant } from "@/domain/model/entities/events/event_participant";
 import { mapParticipantToFrontend } from "../../mappers/event_participant_mapper";
+import { PaginatedResponse } from "@/domain/model/shared/paginated_response";
+import { EventListRestult } from "@/domain/model/dto/events/event_list_result";
+import { EventParticipantListResult } from "@/domain/model/dto/events/event_participant_list_result";
 
 export class EventDataSourceImpl implements EventDataSource {
-  constructor(private readonly api: ApiService) {}
+
+  constructor(
+    private readonly api: ApiService
+  ) {}
+  
+  PAGE_SIZE = 10
+
+  /**
+   * Private helper to convert API PaginatedResponse to Domain EventListResult
+   * Calculates 'hasMore' based on the 'last' property.
+   */
+  private fromPaginatedResponseToResult(response: PaginatedResponse<EventResponseDTO>): EventListRestult {
+    return {
+      events: response.content.map((event) => mapEventToFrontend(event)),
+      hasMore: !response.last 
+    };
+  }
 
   /** GET /api/events/{eventId} */
   async getEventById(eventId: string): Promise<EventItem> {
@@ -21,42 +40,67 @@ export class EventDataSourceImpl implements EventDataSource {
   }
 
   /** GET /api/events/by-any-tag?tags=MUSIC&tags=SPORTS */
-  async getEventsByAnyTag(tags: InterestTag[], page: number, size: number): Promise<EventItem[]> {
-    const response = await this.api.get<EventResponseDTO[]>(`/events/by-any-tag`, {
+  async getEventsByAnyTag(tags: InterestTag[], page: number): Promise<EventListRestult> {
+    const response = await this.api.get<PaginatedResponse<EventResponseDTO>>(`/events/by-any-tag`, {
       tags,
       page: page,
-      size: size
+      size: this.PAGE_SIZE
     });
-    return response.map((event) => mapEventToFrontend(event))
+    return this.fromPaginatedResponseToResult(response)
   }
   
   /** GET /api/events/by-date?eventDate=2025-10-15T00:00:00 */
-  async getEventsByDateAscending(eventDateISO: string, page: number, size: number): Promise<EventItem[]> {
-    const response = await this.api.get<EventResponseDTO[]>(`/events/by-date`, {
+  async getEventsByDateAscending(eventDateISO: string, page: number): Promise<EventListRestult> {
+    const response = await this.api.get<PaginatedResponse<EventResponseDTO>>(`/events/by-date`, {
       eventDate: eventDateISO,
       page: page,
-      size: size
+      size: this.PAGE_SIZE
     });
-    return response.map((event) => mapEventToFrontend(event))
+    return this.fromPaginatedResponseToResult(response)
   }
   
   /** GET /api/events/by-location?city=Leuven */
-  async getEventsByLocation(city: string, page: number, size: number): Promise<EventItem[]> {
-    const response = await this.api.get<EventResponseDTO[]>(`/events/by-location`, {
+  async getEventsByLocation(city: string, page: number): Promise<EventListRestult> {
+    const response = await this.api.get<PaginatedResponse<EventResponseDTO>>(`/events/by-location`, {
       city,
       page: page,
-      size: size
+      size: this.PAGE_SIZE
     });
-    return response.map((event) => mapEventToFrontend(event))
+    const last = response.last
+    return this.fromPaginatedResponseToResult(response)
   }
   
   /** GET /api/events/{eventId}/participants */
-  async getEventParticipants(eventId: string, page: number, size: number): Promise<EventParticipant[]> {
-    const response = await this.api.get<EventParticipantResponseDTO[]>(`/events/${eventId}/participants`, {
+  async getEventParticipants(eventId: string, page: number): Promise<EventParticipantListResult> {
+    const response = await this.api.get<PaginatedResponse<EventParticipantResponseDTO>>(
+      `/events/${eventId}/participants`, {
       page: page,
-      size: size
+      size: this.PAGE_SIZE
     });
-    return response.map((participant) => mapParticipantToFrontend(participant))
+    return {
+      participants: response.content.map((participant) => mapParticipantToFrontend(participant)),
+      hasMore: !response.last
+    }
+  }
+
+  async getEventsByDateAndTags(eventDateISO: string, tags: InterestTag[], page: number): Promise<EventListRestult> {
+    const response = await this.api.get<PaginatedResponse<EventResponseDTO>>(`/events/by-date-and-tags`, {
+      eventDate: eventDateISO,
+      tags: tags,
+      page: page,
+      size: this.PAGE_SIZE
+    });
+    return this.fromPaginatedResponseToResult(response)
+  }
+
+  async getEventsByLocationAndTags(city: string, tags: InterestTag[], page: number): Promise<EventListRestult> {
+    const response = await this.api.get<PaginatedResponse<EventResponseDTO>>(`/events/by-location-and-tags`, {
+      city,
+      tags: tags,
+      page: page,
+      size: this.PAGE_SIZE
+    });
+    return this.fromPaginatedResponseToResult(response)
   }
   
   /** POST /api/events (auth) */
