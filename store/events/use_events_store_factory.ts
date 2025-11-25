@@ -44,21 +44,24 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     // Avoid fetch more time while loading & when there are no more events
     if (state.loading || !state.hasMore) return;
 
+    const actualPage = state.currentPage
+
     // Set loading/error specific to this action
     set({ loading: true, error: null });
     try {
-      const callback = await fetchCallback(state.repository, state.currentPage);
+      const callback = await fetchCallback(state.repository, actualPage);
 
       set({
         events: [...state.events, ...callback.events],
         loading: false,
-        currentPage: ++state.currentPage,
+        currentPage: actualPage + 1,
         hasMore: callback.hasMore,
       });
     } catch (err: unknown) {
       set({
         error: getErrorMessage(err),
         loading: false,
+        hasMore: false
       });
     }
   },
