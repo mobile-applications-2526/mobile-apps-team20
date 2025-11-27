@@ -2,15 +2,8 @@
 import { AuthStatus } from "@/domain/model/enums/AuthStatus";
 import { useUserAuthStore } from "@/store/auth/use_auth_store";
 import { Redirect, Stack } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
 
-function FullscreenLoader() {
-  return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <ActivityIndicator size="large" />
-    </View>
-  );
-}
+
 
 export default function PrivateLayout() {
   const authStatus = useUserAuthStore((s) => s.authStatus);
@@ -30,6 +23,10 @@ export default function PrivateLayout() {
       />
       <Stack.Screen
         name="event/[id]" 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen
+        name="chat/[id]" 
         options={{ headerShown: false }} 
       />
     </Stack>

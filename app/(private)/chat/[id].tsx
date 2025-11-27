@@ -11,7 +11,7 @@ import {
     StyleSheet
 } from 'react-native';
 
-export default function ChatPage() {
+export default function ConversationScreen() {
 
     const [messages, setMessages] = useState([
         { id: "1", text: "Welcome to the chat!", sender: "other" },

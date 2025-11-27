@@ -8,7 +8,7 @@ import {
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function ConversationScreen() {
+export default function ChatsScreen() {
     const router = useRouter();
 
     const conversations = [
@@ -32,8 +32,11 @@ export default function ConversationScreen() {
         }
     ];
     // lets add id later for backend
-    const openChat = (id) => {
-        router.push("/(chat)/chat_screen");
+    const openChat = (chatId: string) => {
+        router.push({
+            pathname: "/(private)/chat/[id]",
+            params: { id: chatId },
+        });
     };
 
     const renderItem = ({ item }: { item: any }) => (
