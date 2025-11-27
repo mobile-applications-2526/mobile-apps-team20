@@ -20,6 +20,7 @@ export default function PrivateLayout() {
     return <Redirect href="/(public)/login_screen" />;
   }
 
+
   // Normal tabs for authenticated users
   return (
     <Stack>

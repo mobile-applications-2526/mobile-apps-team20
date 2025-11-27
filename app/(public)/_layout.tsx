@@ -4,7 +4,22 @@ import { useUserAuthStore } from "@/store/auth/use_auth_store";
 import { Redirect, Stack } from "expo-router";
 
 export default function PublicLayout() {
+  //skips login in dev mode
+  if (__DEV__) {
+    return <Redirect href="/(private)/discover_screen" />;
+  }
+
   const authStatus = useUserAuthStore((s) => s.authStatus);
+<<<<<<< HEAD
+=======
+  const isLoading  = useUserAuthStore((s) => s.isLoading);
+
+
+  // Avoid flashing login/register while we’re still checking auth
+  if (isLoading && authStatus === AuthStatus.CHECKING) {
+    return <FullscreenLoader />;
+  }
+>>>>>>> master
 
   // If user is authenticated, do not allow entering public routes
   if (authStatus === AuthStatus.AUTHENTICATED) {

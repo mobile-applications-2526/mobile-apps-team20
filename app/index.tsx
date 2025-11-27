@@ -20,6 +20,7 @@ export default function Index() {
     return <FullscreenLoader />;
   }
 
+
   // Route to the correct group based on the final auth state
   return authStatus === AuthStatus.AUTHENTICATED
     ? <Redirect href="/(private)/(tabs)/discover_screen" />
