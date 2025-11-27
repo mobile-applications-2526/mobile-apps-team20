@@ -10,8 +10,8 @@ export const useGoogleAuthRedirection = (
   onLoginFailed: (error?: string) => void,
 ) => {
 
-  const WEB_CLIENT_ID = process.env.GOOGLE_WEB_CLIENT_ID ?? ""
-  const IOS_CLIENT_ID = process.env.GOOGLE_IOS_CLIENT_ID ?? ""
+  const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || ""
+  const IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || ""
 
   useEffect(() => {
     GoogleSignin.configure({
