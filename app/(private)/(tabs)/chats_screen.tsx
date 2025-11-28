@@ -13,19 +13,19 @@ export default function ChatsScreen() {
 
     const conversations = [
         {
-            id: "1",
+            id: "550e8400-e29b-41d4-a716-446655440000",
             name: "Hiking",
             lastMessage: "Are you coming tomorrow?",
             time: "14:32",
         },
         {
-            id: "2",
+            id: "550e8400-e29b-41d4-a716-446655440002",
             name: "Studying",
             lastMessage: "Nice! Let's do it.",
             time: "12:11",
         },
         {
-            id: "3",
+            id: "550e8400-e29b-41d4-a716-446655440004",
             name: "Football",
             lastMessage: "See you soon 😊",
             time: "09:05",

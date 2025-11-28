@@ -26,6 +26,7 @@ export default function EventCard({
     }}>
       <View style={styles.eventCard}>
         <Text style={styles.eventTitle}>{event.title}</Text>
+        <Text style={styles.eventTitle}>{event.id}</Text>
         {/* // TODO */}
       </View>
     </Pressable>

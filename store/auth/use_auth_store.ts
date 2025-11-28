@@ -13,6 +13,7 @@ import { StorageType } from "@/domain/model/enums/storage_type";
 interface UserAuthStore {
   user: User | null;
   authStatus: AuthStatus;
+  accessToken: string | null;
 
   errorLogin: string | null;
   isLoginLoading: boolean;
@@ -30,6 +31,7 @@ interface UserAuthStore {
   setAuthStatus: (status: AuthStatus) => void;
   setLoginError: (message: string | null) => void;
   setCodeError: (message: string | null) => void;
+  setAccessToken: (token: string | null) => void
   clearUser: () => Promise<void>;
 
   initializeSession: () => void;
@@ -44,6 +46,7 @@ interface UserAuthStore {
 export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
   user: null,
   authStatus: AuthStatus.CHECKING,
+  accessToken: null,
   
   errorLogin: null,
   isLoginLoading: false,
@@ -61,6 +64,7 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
   setAuthStatus: (status: AuthStatus) => set({ authStatus: status }),
   setLoginError: (message: string | null) => set({ errorLogin: message }),
   setCodeError: (message: string | null) => set({ errorCode: message }),
+  setAccessToken: (token: string | null) => set({ accessToken: token }),
   
 
   clearUser: async () => {
@@ -70,7 +74,15 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
       StorageType.REFRESH_TOKEN,
       StorageType.USER_CREDENTIALS
     ]);
-    set({ user: null, authStatus: AuthStatus.NOT_AUTHENTICATED, errorLogin: null });
+    set({ 
+      user: null,
+      authStatus: AuthStatus.NOT_AUTHENTICATED, 
+      errorLogin: null,
+      errorCode: null,
+      errorExternalLogin: null,
+      errorRegister: null,
+      accessToken: null
+    });
   },
 
   initializeSession: async () => {
@@ -83,6 +95,7 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
       // TODO: Cache the user profile (save it when filling it)
       const token = await AsyncStorage.getItem(StorageType.ACCESS_TOKEN);
       const email = await AsyncStorage.getItem(StorageType.USER_CREDENTIALS);
+      state.setAccessToken(token)
 
       if (token && email) {
 
@@ -278,9 +291,13 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
       )
     }
 
-    await AsyncStorage.setItem(StorageType.ACCESS_TOKEN, resp.accessToken);
-    await AsyncStorage.setItem(StorageType.REFRESH_TOKEN, resp.refreshToken);
-    await AsyncStorage.setItem(StorageType.USER_CREDENTIALS, resp.email)
+    await Promise.all([
+      AsyncStorage.setItem(StorageType.ACCESS_TOKEN, resp.accessToken),
+      AsyncStorage.setItem(StorageType.REFRESH_TOKEN, resp.refreshToken),
+      AsyncStorage.setItem(StorageType.USER_CREDENTIALS, resp.email)
+    ]);
+
+    state.setAccessToken(resp.accessToken)
 
     set({
       authStatus: AuthStatus.AUTHENTICATED,

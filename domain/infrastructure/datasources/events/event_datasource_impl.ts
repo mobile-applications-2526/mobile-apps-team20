@@ -18,7 +18,8 @@ export class EventDataSourceImpl implements EventDataSource {
 
   constructor(
     private readonly api: ApiService
-  ) {}
+  ) {
+  }
   
   PAGE_SIZE = 10
 

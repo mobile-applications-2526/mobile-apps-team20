@@ -79,7 +79,6 @@ export class ApiServiceImpl implements ApiService {
           this.isRefreshing = true;
 
           try {
-            console.log("Refreshing token...");
             await this.refreshToken();
 
             // Success: Notify queue
@@ -136,6 +135,8 @@ export class ApiServiceImpl implements ApiService {
     if (!data?.accessToken) throw new Error("Token refresh failed");
 
     await AsyncStorage.setItem(StorageType.ACCESS_TOKEN, data.accessToken);
+    useUserAuthStore.getInitialState().setAccessToken(data.accessToken)
+
     if (data.refreshToken) {
       await AsyncStorage.setItem(StorageType.REFRESH_TOKEN, data.refreshToken);
     }

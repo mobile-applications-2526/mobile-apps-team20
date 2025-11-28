@@ -2,6 +2,7 @@ import { AuthStatus } from "@/domain/model/enums/AuthStatus";
 import { useUserAuthStore } from "@/store/auth/use_auth_store";
 import { Redirect } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
+import "text-encoding"; // Needed for STOMP
 
 function FullscreenLoader() {
   return (
