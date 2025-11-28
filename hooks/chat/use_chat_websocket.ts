@@ -10,6 +10,7 @@ export const useChatSocket = (chatId: string) => {
     const [incomingMessage, setIncomingMessage] = useState<ChatMessage | null>(null);
     const clientRef = useRef<Client | null>(null);
     const token = useUserAuthStore((state) => state.accessToken);
+    const SERVER_ADDRESS = process.env.EXPO_PUBLIC_SERVER_ADDRESS ?? ""
 
     useEffect(() => {
         if (!token) return;
@@ -21,13 +22,9 @@ export const useChatSocket = (chatId: string) => {
             reconnectDelay: 5000,
             forceBinaryWSFrames: true,
             appendMissingNULLonIncoming: true,
-            
-            // Debug logs
-            // debug: (str) => console.log('STOMP: ' + str),
 
             webSocketFactory: () => {
-                // Adjust IP based on environment (10.0.2.2 for Android Emulator, LAN IP for device)
-                const url = 'ws://192.168.0.105:8082/ws-chat'; 
+                const url = 'ws://'+ SERVER_ADDRESS +'/ws-chat/websocket'; 
                 
                 // @ts-ignore
                 return new WebSocket(url, [], {
