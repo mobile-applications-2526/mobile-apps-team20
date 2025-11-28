@@ -8,6 +8,7 @@ interface ChatState {
     messages: ChatMessage[];
     isLoading: boolean;
     error: string | null
+    lastId: string | null
     // Pagination state
     page: number;
     hasMore: boolean;
@@ -31,6 +32,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     page: 0,
     hasMore: true,
     error: null,
+    lastId: null,
 
     setMessages: (messages) => set({ messages }),
 
@@ -62,12 +64,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }),
 
     fetchHistory: async (chatId: string) => {
-        const { page, hasMore, isLoading, setMessages, prependMessages } = get();
+        let { page, hasMore, isLoading, lastId } = get();
+        
+        // If it's the first state & chat id has changed
+        if ( lastId && lastId != chatId) {
+            get().clearChat()
+            // Update local variables
+            page = 0; 
+            hasMore = true;
+            isLoading = false;
+        }
 
         // Guard clauses to prevent double fetching or fetching when done
         if (isLoading || (!hasMore && page !== 0)) return;
 
-        set({ isLoading: true });
+        set({ isLoading: true, lastId: chatId });
 
         try {
             const response = await container.chatRepository.getMessages(chatId, page);
@@ -75,10 +86,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
             // Logic to determine if there are more pages
             if (page === 0) {
                 // First load: replace everything
-                setMessages(response.messages);
+                get().setMessages(response.messages);
             } else {
                 // Pagination: add to top
-                prependMessages(response.messages);
+                get().prependMessages(response.messages);
             }
 
             set((state) => ({

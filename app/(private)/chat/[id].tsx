@@ -10,7 +10,6 @@ import {
     Image,
     KeyboardAvoidingView,
     Platform,
-    RefreshControl,
     StyleSheet,
     Text,
     TextInput,
@@ -32,7 +31,8 @@ export default function ConversationScreen() {
 
     // Global State (Zustand)
     const { 
-        messages, 
+        messages,
+        hasMore, 
         fetchHistory, 
         addMessage, 
         clearChat, 
@@ -44,24 +44,15 @@ export default function ConversationScreen() {
 
     // Effect: Initial Load & Cleanup
     useEffect(() => {
-        // Load initial history (Page 0)
+        // Load history 
         fetchHistory(chatId);
-        
-        // Cleanup store when leaving the screen
-        return () => {
-            clearChat();
-        };
+
     }, [chatId]);
 
     // Effect: Listen for new messages from Socket
     useEffect(() => {
         if (incomingMessage) {
             addMessage(incomingMessage);
-            
-            // Scroll to bottom on new message
-            setTimeout(() => {
-                flatListRef.current?.scrollToEnd({ animated: true });
-            }, 100);
         }
     }, [incomingMessage]);
 
@@ -71,6 +62,10 @@ export default function ConversationScreen() {
 
         sendMessage(inputText);
         setInputText("");
+        // Scroll down
+        setTimeout(() => {
+                flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+            }, 100);
     };
 
     const renderMessage = ({ item }: { item: ChatMessage }) => {
@@ -111,28 +106,26 @@ export default function ConversationScreen() {
                     </View>
                 ) : (
                     <FlatList
+                        inverted
                         ref={flatListRef}
-                        data={messages}
+                        data={[...messages].reverse()}
                         keyExtractor={(item) => item.id}
                         renderItem={renderMessage}
                         contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
-                        
-                        // Pagination: Pull down to load older messages
-                        refreshControl={
-                            <RefreshControl 
-                                refreshing={isLoading} 
-                                onRefresh={() => fetchHistory(chatId)} 
-                                tintColor="#2e64e5"
-                            />
-                        }
-                        
-                        // Auto-scroll logic for new messages
-                        onContentSizeChange={() => {
-                            // Only scroll to end if we are NOT loading history (to avoid jumping when paging)
-                            if (!isLoading) {
-                               flatListRef.current?.scrollToEnd({ animated: true });
+
+                        onEndReached={() => {
+                            if (messages.length === 0) return
+                            // Prevent fetching if already loading or no more data
+                            if (messages.length > 0 && hasMore && !isLoading) {
+                                fetchHistory(chatId);
                             }
                         }}
+                        onEndReachedThreshold={0.5}
+
+                         // Loading indicator for "End" (Top of screen)
+                        ListFooterComponent={
+                            isLoading ? <ActivityIndicator size="small" color="#999" style={{ margin: 10 }} /> : null
+                        }
                     />
                 )}
             </View>
