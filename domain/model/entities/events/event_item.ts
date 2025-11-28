@@ -11,7 +11,6 @@ export interface EventItem {
     participantCount: number
     city: string
     placeName: string
-    chatId: string
     startDate: string
     endDate: string
 }

@@ -33,7 +33,6 @@ export const mapEventToFrontend = (dto: EventResponseDTO): EventItem => {
         participantCount: dto.participantCount ?? 0, 
         city: dto.location?.city ?? "Unknown City",
         placeName: dto.location?.placeName ?? "Unknown Place",
-        chatId: dto.chat?.id ?? "no-chat-id",
         startDate: dto.startDate,
         endDate: dto.endDate
     };
