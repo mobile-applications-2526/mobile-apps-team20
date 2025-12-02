@@ -9,6 +9,7 @@ import { UserAuthResponse } from "@/domain/model/dto/auth/user_auth_response";
 import { User } from "@/domain/model/entities/users/user";
 import { AuthStatus } from "@/domain/model/enums/AuthStatus";
 import { StorageType } from "@/domain/model/enums/storage_type";
+import { UserSessionCredentials } from "@/domain/model/dto/auth/user_session_credentials";
 
 interface UserAuthStore {
   user: User | null;
@@ -94,16 +95,21 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
 
       // TODO: Cache the user profile (save it when filling it)
       const token = await AsyncStorage.getItem(StorageType.ACCESS_TOKEN);
-      const email = await AsyncStorage.getItem(StorageType.USER_CREDENTIALS);
-      state.setAccessToken(token)
-
-      if (token && email) {
+      const json = await AsyncStorage.getItem(StorageType.USER_CREDENTIALS);
+      
+      if (token && json) {
+        
+        const credentials: UserSessionCredentials = JSON.parse(json)
+        state.setAccessToken(token)
 
         // Restore the session
         // TODO: Fetch user & profile data from backend
         set({ 
             authStatus: AuthStatus.AUTHENTICATED,
-            user: new User(email, "") 
+            user: new User(
+              credentials.email,
+              credentials.username
+            ) 
         });
 
       } else {
@@ -271,7 +277,8 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
   },
 
   setUserAuthenticated: async (resp: UserAuthResponse) => {
-    if (!resp?.accessToken || !resp?.refreshToken) throw new Error("Invalid auth response");
+    if (!resp?.accessToken || !resp?.refreshToken || !resp?.username) 
+      throw new Error("Invalid auth response");
 
     const state = get()
 
@@ -279,22 +286,28 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
       state.setUser(
         new User(
           resp.email,
-          resp.email.split("@")[0])
+          resp.username
+        )
       )
     }
 
     else {
       state.setUser(
           state.user.copyWith({
-          username: resp.email.split("@")[0],
+          username: resp.username,
         })
       )
+    }
+
+    const credentials: UserSessionCredentials = {
+      email: resp.email,
+      username: resp.username
     }
 
     await Promise.all([
       AsyncStorage.setItem(StorageType.ACCESS_TOKEN, resp.accessToken),
       AsyncStorage.setItem(StorageType.REFRESH_TOKEN, resp.refreshToken),
-      AsyncStorage.setItem(StorageType.USER_CREDENTIALS, resp.email)
+      AsyncStorage.setItem(StorageType.USER_CREDENTIALS, JSON.stringify(credentials))
     ]);
 
     state.setAccessToken(resp.accessToken)
