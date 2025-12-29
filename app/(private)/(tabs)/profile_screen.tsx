@@ -1,5 +1,7 @@
 import { useProfilePage } from "@/hooks/user/use_profile_page";
-import React, { useState } from "react";
+import { countries } from "countries-list";
+import ISO6391 from "iso-639-1";
+import React, { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -66,6 +68,25 @@ export default function ProfileScreen() {
 
   const initial = displayName.charAt(0).toUpperCase();
 
+  const [isLanguagePickerOpen, setIsLanguagePickerOpen] = useState(false);
+  const [isNationalityPickerOpen, setIsNationalityPickerOpen] = useState(false);
+
+  const languageOptions = useMemo(
+    () =>
+      ISO6391.getAllCodes()
+        .map((code) => ({ code, name: ISO6391.getName(code) }))
+        .filter((l) => l.name)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    []
+  );
+
+  const nationalityOptions = useMemo(() => {
+    const list = Object.values(countries)
+      .map((c) => c.name)
+      .filter((n): n is string => !!n && n.trim().length > 0);
+    return Array.from(new Set(list)).sort((a, b) => a.localeCompare(b));
+  }, []);
+
   return (
     <View style={styles.screenContainer}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -121,6 +142,7 @@ export default function ProfileScreen() {
               style={styles.editScroll}
               contentContainerStyle={styles.editScrollContent}
               keyboardShouldPersistTaps="handled"
+              scrollEnabled={!isLanguagePickerOpen && !isNationalityPickerOpen}
             >
               <Text style={styles.fieldLabel}>Username</Text>
               <TextInput
@@ -131,20 +153,102 @@ export default function ProfileScreen() {
               />
 
               <Text style={styles.fieldLabel}>Nationality</Text>
-              <TextInput
+              <TouchableOpacity
                 style={styles.input}
-                placeholder="Nationality"
-                value={editNationality}
-                onChangeText={setEditNationality}
-              />
+                onPress={() =>
+                  setIsNationalityPickerOpen((prev) => !prev)
+                }
+              >
+                <Text
+                  style={{
+                    color: editNationality.length ? "#000" : "#9ca3af",
+                  }}
+                >
+                  {editNationality.length
+                    ? editNationality.join(", ")
+                    : "Select your nationality"}
+                </Text>
+              </TouchableOpacity>
+
+              {isNationalityPickerOpen && (
+                <View style={styles.languageListContainer}>
+                  <ScrollView
+                    style={styles.languageList}
+                    nestedScrollEnabled
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {nationalityOptions.map((nat) => {
+                      const selected = editNationality.includes(nat);
+                      return (
+                        <TouchableOpacity
+                          key={nat}
+                          style={[
+                            styles.languageItem,
+                            selected && styles.languageItemSelected,
+                          ]}
+                          onPress={() => {
+                            setEditNationality((prev) =>
+                              prev.includes(nat)
+                                ? prev.filter((n) => n !== nat)
+                                : [...prev, nat]
+                            );
+                          }}
+                        >
+                          <Text style={styles.languageItemLabel}>{nat}</Text>
+                          {selected && (
+                            <Text style={styles.languageItemCheck}>✓</Text>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
 
               <Text style={styles.fieldLabel}>Languages</Text>
-              <TextInput
+              <TouchableOpacity
                 style={styles.input}
-                placeholder="Languages (comma separated)"
-                value={editLanguages}
-                onChangeText={setEditLanguages}
-              />
+                onPress={() => setIsLanguagePickerOpen((prev) => !prev)}
+              >
+                <Text style={{ color: editLanguages.length ? "#000" : "#9ca3af" }}>
+                  {editLanguages.length
+                    ? editLanguages.join(", ")
+                    : "Select your languages"}
+                </Text>
+              </TouchableOpacity>
+
+              {isLanguagePickerOpen && (
+                <View style={styles.languageListContainer}>
+                  <ScrollView
+                    style={styles.languageList}
+                    nestedScrollEnabled
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {languageOptions.map((lang) => {
+                      const selected = editLanguages.includes(lang.name);
+                      return (
+                        <TouchableOpacity
+                          key={lang.code}
+                          style={[
+                            styles.languageItem,
+                            selected && styles.languageItemSelected,
+                          ]}
+                          onPress={() => {
+                            setEditLanguages((prev) =>
+                              prev.includes(lang.name)
+                                ? prev.filter((l) => l !== lang.name)
+                                : [...prev, lang.name]
+                            );
+                          }}
+                        >
+                          <Text style={styles.languageItemLabel}>{lang.name}</Text>
+                          {selected && <Text style={styles.languageItemCheck}>✓</Text>}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
 
               <Text style={styles.fieldLabel}>Age</Text>
               <TextInput
@@ -331,6 +435,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginBottom: 10,
+  },
+  languageListContainer: {
+    maxHeight: 200,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    marginBottom: 10,
+    backgroundColor: "#fff",
+  },
+  languageList: {
+    paddingVertical: 4,
+  },
+  languageItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  languageItemSelected: {
+    backgroundColor: "#e3edf7",
+  },
+  languageItemLabel: {
+    color: "#111827",
+  },
+  languageItemCheck: {
+    color: "#0066cc",
+    fontWeight: "600",
   },
   bioInput: {
     borderWidth: 1,

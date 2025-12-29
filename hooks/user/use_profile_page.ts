@@ -51,11 +51,11 @@ export const useProfilePage = () => {
   // --- Edit form state ---
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editUserName, setEditUserName] = useState(profile?.name ?? "");
-  const [editNationality, setEditNationality] = useState(
-    profile?.nationality.join(", ") ?? ""
+  const [editNationality, setEditNationality] = useState<string[]>(
+    profile?.nationality ?? []
   );
-  const [editLanguages, setEditLanguages] = useState(
-    profile?.languages.join(", ") ?? ""
+  const [editLanguages, setEditLanguages] = useState<string[]>(
+    profile?.languages ?? []
   );
   const [editAge, setEditAge] = useState(
     profile?.age ? String(profile.age) : ""
@@ -70,8 +70,8 @@ export const useProfilePage = () => {
   useEffect(() => {
     if (profile) {
       setEditUserName(profile.name ?? "");
-      setEditNationality(profile.nationality.join(", ") ?? "");
-      setEditLanguages(profile.languages.join(", ") ?? "");
+      setEditNationality(profile.nationality ?? []);
+      setEditLanguages(profile.languages ?? []);
       setEditAge(profile.age ? String(profile.age) : "");
       setEditCity(profile.city ?? "");
       setEditCountry(profile.country ?? "");
@@ -90,11 +90,9 @@ export const useProfilePage = () => {
 
   const handleSubmitEdit = async () => {
     if (!profile) return;
+    const languages = editLanguages;
 
-    const languages = editLanguages
-      .split(",")
-      .map((l) => l.trim())
-      .filter(Boolean);
+    const nationalityString = editNationality.join(", ");
 
     const interests = editInterests
       .split(",")
@@ -105,7 +103,7 @@ export const useProfilePage = () => {
 
     await updateProfile({
       userName: editUserName,
-      nationality: editNationality,
+      nationality: nationalityString,
       languages,
       age: ageNumber,
       interests,
