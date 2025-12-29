@@ -9,9 +9,18 @@ import { RefreshTokenRequest } from "../../../model/dto/auth/refresh_token_auth_
 import { UserAuthRequest } from "../../../model/dto/auth/user_auth_request";
 import { UserAuthResponse } from "../../../model/dto/auth/user_auth_response";
 import { ApiService } from "../../../services/api_service";
+import { UserProfile } from "@/domain/model/entities/events/user_profile";
+import { UserProfileResponseDTO } from "@/domain/model/dto/user/user_profile_response_dto";
+import { mapProfileToFrontend } from "../../mappers/user_profile_mapper";
 
 export class AuthDataSourceImpl implements AuthDataSource {
   constructor(private readonly api: ApiService) {}
+
+  getAuthenticatedUser(request: string): Promise<UserProfile> {
+    const response = this.api.get<UserProfileResponseDTO>("/api/user/" + request)
+    console.log("Response DTO:", JSON.stringify(response));
+    return response.then(dto => mapProfileToFrontend(dto))
+  }
 
   login(request: UserAuthRequest): Promise<void> {
     // Public endpoint: do not attach Authorization header.

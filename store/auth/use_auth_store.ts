@@ -93,24 +93,30 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
       // Assure the status is checking
       set({ authStatus: AuthStatus.CHECKING });
 
-      // TODO: Cache the user profile (save it when filling it)
       const token = await AsyncStorage.getItem(StorageType.ACCESS_TOKEN);
       const json = await AsyncStorage.getItem(StorageType.USER_CREDENTIALS);
       
       if (token && json) {
         
-        const credentials: UserSessionCredentials = JSON.parse(json)
+        const credentials: User = JSON.parse(json)
         state.setAccessToken(token)
 
         // Restore the session
-        // TODO: Fetch user & profile data from backend
         set({ 
             authStatus: AuthStatus.AUTHENTICATED,
             user: new User(
               credentials.email,
-              credentials.username
+              credentials.username,
+              credentials.bio,  // bio
+              credentials.profileImage,  // profileImage
+              credentials.languages,  // languages 
+              credentials.nacionality,  // nationality
+              credentials.socialMedia 
             ) 
         });
+
+           console.log("Getting credentials: " + JSON.stringify(credentials))
+
 
       } else {
 
@@ -182,7 +188,17 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
       const request: UserAuthRequest = { email };
       await container.authRepository.requestLoginEmail(request);
 
-      state.setUser(new User(email, ""))
+      state.setUser(
+        new User(
+            email, // email
+            "",    // username 
+            null,  // bio
+            null,  // profileImage
+            null,  // languages
+            null,  // nationality
+            null   // socialMedia
+        )
+      )
       set({ isLoginLoading: false })
 
       return true
@@ -282,38 +298,63 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
 
     const state = get()
 
-    if (!state.user) {
-      state.setUser(
-        new User(
-          resp.email,
-          resp.username
+    // Fetch user profile info
+
+    try {
+        set({ isLoginLoading: true, errorLogin: null });
+
+        const user = await container
+          .authRepository
+          .getAuthenticatedUser(resp.username)
+
+        set({ isLoginLoading: false });
+
+        if (!state.user) {
+        state.setUser(
+          new User(
+            resp.email,
+            resp.username,
+            user.bio,
+            user.profileImage ?? null,
+            user.languages,
+            user.nationality,
+            user.socialMedia ?? null
+          )
         )
-      )
+      }
+
+      else {
+        state.setUser(
+            state.user.copyWith({
+            username: resp.username,
+            bio: user.bio,
+            profileImage: user.profileImage ?? null,
+            languages: user.languages,
+            nacionality: user.nationality,
+            socialMedia: user.socialMedia ?? null
+          })
+        )
+      }
+
+    const credentials = get().user
+
+    console.log("Saving credentials: " + JSON.stringify(credentials))
+
+      await Promise.all([
+        AsyncStorage.setItem(StorageType.ACCESS_TOKEN, resp.accessToken),
+        AsyncStorage.setItem(StorageType.REFRESH_TOKEN, resp.refreshToken),
+        AsyncStorage.setItem(StorageType.USER_CREDENTIALS, JSON.stringify(credentials))
+      ]);
+
+      state.setAccessToken(resp.accessToken)
+
+      set({
+        authStatus: AuthStatus.AUTHENTICATED,
+      });
+
+  } catch (e: unknown) {
+      set({ errorLogin: getErrorMessage(e), isLoginLoading: false});
     }
-
-    else {
-      state.setUser(
-          state.user.copyWith({
-          username: resp.username,
-        })
-      )
-    }
-
-    const credentials: UserSessionCredentials = {
-      email: resp.email,
-      username: resp.username
-    }
-
-    await Promise.all([
-      AsyncStorage.setItem(StorageType.ACCESS_TOKEN, resp.accessToken),
-      AsyncStorage.setItem(StorageType.REFRESH_TOKEN, resp.refreshToken),
-      AsyncStorage.setItem(StorageType.USER_CREDENTIALS, JSON.stringify(credentials))
-    ]);
-
-    state.setAccessToken(resp.accessToken)
-
-    set({
-      authStatus: AuthStatus.AUTHENTICATED,
-    });
   }
+  
 }));

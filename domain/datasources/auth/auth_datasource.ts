@@ -7,6 +7,8 @@ import { RefreshTokenRequest } from "@/domain/model/dto/auth/refresh_token_auth_
 import { TokenRequest } from "@/domain/model/dto/auth/token_request";
 import { UserAuthRequest } from "@/domain/model/dto/auth/user_auth_request";
 import { UserAuthResponse } from "@/domain/model/dto/auth/user_auth_response";
+import { UserProfileResponseDTO } from "@/domain/model/dto/user/user_profile_response_dto";
+import { UserProfile } from "@/domain/model/entities/events/user_profile";
 
 
 
@@ -42,6 +44,8 @@ export interface AuthDataSource {
    * Exchanges a refresh token for a new access/refresh token pair.
    */
   refreshToken(request: RefreshTokenRequest): Promise<UserAuthResponse>;
+
+  getAuthenticatedUser(request: string ): Promise<UserProfile>;
 
   /**
    * Invalidates the current session on the server (access & refresh tokens).
