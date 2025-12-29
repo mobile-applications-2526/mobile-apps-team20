@@ -8,7 +8,10 @@ import { EventParticipantListResult } from "@/domain/model/dto/events/event_part
 /**
  * Domain repository contract for Events
  */
-export interface EventRepository { 
+export interface EventRepository {
+
+  unSubscribeToEvent(eventId: string): Promise<void>;
+
   getEventById(eventId: string): Promise<EventItem>;
 
   getEventsByAnyTag(tags: InterestTag[], page: number): Promise<EventListRestult>;

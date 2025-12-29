@@ -17,6 +17,10 @@ export class EventRepositoryImpl implements EventRepository {
 
   constructor(private readonly dataSource: EventDataSource) {}
 
+  unSubscribeToEvent(eventId: string): Promise<void> {
+    return this.dataSource.cancelEventSubscription(eventId)
+  }
+
   /** Fetch a single event by ID */
   async getEventById(eventId: string): Promise<EventItem> {
     return this.dataSource.getEventById(eventId);

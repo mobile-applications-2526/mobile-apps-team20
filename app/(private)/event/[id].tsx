@@ -26,6 +26,8 @@ export default function EventDetailScreen() {
     handleProfileNavigation,
     handleLoadMore,
     handleGoBack,
+    isJoined, 
+    handleLeaveEvent 
   } = useEventDetailPage();
 
   // --- Render Components (Footer & Empty State) ---
@@ -35,12 +37,10 @@ export default function EventDetailScreen() {
   );
 
   const ListFooter = () => {
-    // If we have loaded the event but count is 0, show empty text
     if (event?.participantCount === 0) {
       return ListEmptyComponent();
     }
 
-    // Show spinner if loading more pages
     if (isLoadingParticipants) {
       return (
         <View style={styles.loaderFooter}>
@@ -70,7 +70,7 @@ export default function EventDetailScreen() {
       {/* Navigation */}
       <FloatingBackButton onPress={handleGoBack} top={insets.top} />
 
-      {/* Sticky Header (appears on scroll) */}
+      {/* Sticky Header */}
       <StickyHeader
         event={event}
         topInset={insets.top}
@@ -81,7 +81,6 @@ export default function EventDetailScreen() {
         data={eventParticipants}
         keyExtractor={(item) => item.id}
         
-        // 1. Header: Encapsulated logic for Event Info + Organiser
         ListHeaderComponent={
           <EventDetailListHeader
             event={event}
@@ -89,7 +88,6 @@ export default function EventDetailScreen() {
           />
         }
         
-        // 2. Items: Participant rows
         renderItem={({ item }) => (
           <View style={{ paddingHorizontal: 15 }}>
             <ParticipantCard
@@ -100,24 +98,23 @@ export default function EventDetailScreen() {
           </View>
         )}
         
-        // 3. Footer: Spinner logic or empty label
         ListFooterComponent={ListFooter}
-        
-        // Infinite Scroll
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.3}
-        
-        // Animations: Link scroll position to Animated Value
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true }
         )}
         scrollEventThrottle={16}
-        
         contentContainerStyle={{ paddingBottom: 100 }}
       />
 
-      <JoinEventButton onPress={handleJoinEvent} />
+      {/* --- MODIFIED BUTTON LOGIC --- */}
+      <JoinEventButton 
+        onPress={isJoined ? handleLeaveEvent : handleJoinEvent} 
+        label={isJoined ? "Unsubscribe" : "Join Event"}
+        variant={isJoined ? "destructive" : "primary"} // Optional: if you want to change color (e.g., Red for leave)
+      />
     </View>
   );
 }

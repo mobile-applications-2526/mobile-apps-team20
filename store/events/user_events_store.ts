@@ -4,6 +4,7 @@ import { EventRepository } from "@/domain/repository/events/event_repository";
 import { getErrorMessage } from "@/shared/utils/error_utils";
 import { container } from "@/dependency_injection/container";
 import { EventItem } from "@/domain/model/entities/events/event_item";
+import { useUserAuthStore } from "../auth/use_auth_store";
 
 export interface UserEventsStore {
   // Data (Added myEvents to store the actual list)
@@ -26,6 +27,7 @@ export interface UserEventsStore {
   createEvent: (data: EventRequestDTO) => Promise<void>;
   deleteMyEvent: (id: string) => Promise<void>;
   subscribeToEvent: (eventId: string) => Promise<boolean>
+  unSubscribeToEvent: (eventId: string, organizerName: string) => Promise<boolean>
 }
 
 // 2. Create the store hook
@@ -94,6 +96,48 @@ export const useUserEventStore = create<UserEventsStore>((set, get) => ({
     } catch (err: unknown) {
       set({ errorSubscribe: getErrorMessage(err), loadingSubscribe: false });
       return false
+    }
+  },
+
+  unSubscribeToEvent: async (eventId: string, organizerName: string) => {
+    const state = get();
+
+    if (state.loadingSubscribe) {
+      set({ errorSubscribe: "Request already in process" });
+      return false;
+    }
+
+    // Get current User from the Auth Store safely
+    const currentUser = useUserAuthStore.getState().user;
+    if (!currentUser) {
+        set({ errorSubscribe: "User not identified" });
+        return false;
+    }
+
+    set({ loadingSubscribe: true, errorSubscribe: null });
+    
+    try {
+      // Check if the current user is the organizer by Name
+      if (currentUser.username === organizerName) {
+        // If Organizer -> Cancel/Delete the event
+        await get().eventRepository.deleteEvent(eventId);
+        
+        // Remove it from local 'myEvents' list to keep UI in sync
+        set((s) => ({
+            myEvents: s.myEvents.filter((e) => e.id !== eventId)
+        }));
+      } 
+      else {
+        // If Participant -> Just unsubscribe
+        await get().eventRepository.unSubscribeToEvent(eventId);
+      }
+      
+      set({ loadingSubscribe: false });
+      return true;
+
+    } catch (err: unknown) {
+      set({ errorSubscribe: getErrorMessage(err), loadingSubscribe: false });
+      return false;
     }
   }
 

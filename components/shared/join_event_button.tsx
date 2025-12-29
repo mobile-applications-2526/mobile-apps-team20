@@ -3,16 +3,30 @@ import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
 type JoinButtonProps = {
   onPress: () => void;
+  label?: string;                    // Texto del botón (opcional, default "Join")
+  variant?: 'primary' | 'destructive'; // Estilo visual (opcional, default "primary")
 };
 
 /**
- * A floating action button (FAB) for joining an event.
- * @param onPress - Function to execute when pressed.
+ * A floating action button (FAB) for joining or leaving an event.
  */
-export default function JoinEventButton({ onPress }: JoinButtonProps) {
+export default function JoinEventButton({ 
+  onPress, 
+  label = "Join", 
+  variant = "primary" 
+}: JoinButtonProps) {
+
+  // Decidimos el color según la variante
+  const isDestructive = variant === 'destructive';
+  const backgroundColor = isDestructive ? "#FF3B30" : "#007AFF"; // Rojo vs Azul
+
   return (
-    <TouchableOpacity style={styles.joinButton} onPress={onPress}>
-      <Text style={styles.joinButtonText}>Join</Text>
+    <TouchableOpacity 
+      style={[styles.joinButton, { backgroundColor }]} 
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <Text style={styles.joinButtonText}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -23,13 +37,15 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 30,
     right: 30,
-    backgroundColor: "#007AFF",
+    // backgroundColor se maneja dinámicamente arriba
     borderRadius: 50,
     paddingVertical: 15,
     paddingHorizontal: 25,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    
+    // Sombra
     elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
