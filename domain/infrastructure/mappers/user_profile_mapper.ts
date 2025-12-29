@@ -8,7 +8,7 @@ import { InterestTag } from "@/domain/model/enums/interest_tag";
  * Checks if the prefix exists, otherwise adds it.
  */
 export const processImage = (base64Image: string | null | undefined): string | undefined => {
-    if (!base64Image) return undefined;
+    if (!base64Image || base64Image === "null") return undefined;
     return base64Image.startsWith('data:') 
         ? base64Image 
         : `data:image/jpeg;base64,${base64Image}`;

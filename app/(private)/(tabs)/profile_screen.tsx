@@ -1,3 +1,4 @@
+import { useProfilePage } from "@/hooks/user/use_profile_page";
 import React, { useState } from "react";
 import {
   ScrollView,
@@ -29,62 +30,70 @@ const Section = ({
 };
 
 export default function ProfileScreen() {
-  const name = "Alex Doe"; // Defined here to extract the initial easily
-  const initial = name.charAt(0).toUpperCase();
+  const {
+    displayName,
+    subtitle,
+    interests,
+    languagesText,
+    nationalityText,
+    bioText,
+    handleEditProfile,
+    handleLogout,
+  } = useProfilePage();
+
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.avatarWrapper}>
-        {/* Changed Image to View with Text */}
-        <View style={styles.avatar}>
-           <Text style={styles.avatarText}>{initial}</Text>
-        </View>
-      </View>
-      
-      <Text style={styles.name}>{name}</Text>
-      <Text style={styles.subtitle}>Computer Science</Text>
-
-      <View style={styles.row}>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Edit Profile</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.label}>Interests</Text>
-      <View style={styles.chipsRow}>
-        {['AI', 'Hiking', 'Photography', 'Startups'].map((tag) => (
-          <View key={tag} style={styles.chip}>
-            <Text style={styles.chipText}>{tag}</Text>
+    <View style={styles.screenContainer}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.avatarWrapper}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initial}</Text>
           </View>
-        ))}
-      </View>
+        </View>
 
-      <Section title="Bio" defaultOpen={false}>
-        <Text>
-          A passionate computer science student with a keen interest in artificial intelligence
-          and machine learning. In my free time, I enjoy hiking and photography.
-        </Text>
-      </Section>
+        <Text style={styles.name}>{displayName}</Text>
+        <Text style={styles.subtitle}>{subtitle}</Text>
 
-      <Section title="Languages" defaultOpen={false}>
-        <Text>Add your languages here…</Text>
-      </Section>
+        <View style={styles.row}>
+          <TouchableOpacity style={styles.button} onPress={handleEditProfile}>
+            <Text style={styles.buttonText}>Edit Profile</Text>
+          </TouchableOpacity>
+        </View>
 
-      <Section title="Nationality" defaultOpen={false}>
-        <Text>Add your nationality here…</Text>
-      </Section>
+        <Text style={styles.label}>Interests</Text>
+        <View style={styles.chipsRow}>
+          {interests.map((tag) => (
+            <View key={tag} style={styles.chip}>
+              <Text style={styles.chipText}>{tag}</Text>
+            </View>
+          ))}
+        </View>
 
-      <Section title="Social Media" defaultOpen={false}>
-        <Text>Add your social media here…</Text>
-      </Section>
+        <Section title="Bio" defaultOpen={false}>
+          <Text>{bioText}</Text>
+        </Section>
+
+        <Section title="Languages" defaultOpen={false}>
+          <Text>{languagesText}</Text>
+        </Section>
+
+        <Section title="Nationality" defaultOpen={false}>
+          <Text>{nationalityText}</Text>
+        </Section>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>Logout</Text>
+      </TouchableOpacity>
+      </ScrollView>
 
       
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#f9f9f9" },
+  screenContainer: { flex: 1, backgroundColor: "#f9f9f9" },
+  container: { padding: 20, paddingBottom: 40 },
   name: {
     fontSize: 28,
     fontWeight: "600",
@@ -144,15 +153,27 @@ const styles = StyleSheet.create({
   avatar: {
     width: 96,
     height: 96,
-    borderRadius: 48, 
-    backgroundColor: "#0066cc", // Darker blue for background
-    justifyContent: "center",   // Centers text vertically
-    alignItems: "center",       // Centers text horizontally
+    borderRadius: 48,
+    backgroundColor: "#0066cc",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  // New style for the initial letter
   avatarText: {
     fontSize: 48,
     fontWeight: "bold",
     color: "#ffffff",
+  },
+  logoutButton: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: "#d9534f",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoutButtonText: {
+    color: "#fff",
+    fontWeight: "600",
   },
 });
