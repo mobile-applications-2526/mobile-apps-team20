@@ -127,7 +127,7 @@ export default function EventForm({
       <View>
         <Text style={styles.modalHeader}>{formLabel}</Text>
 
-        {/* Image picker area */}
+        {/* Image picker area 
         <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
           {imagePreviewUri ? (
             <Image
@@ -138,6 +138,7 @@ export default function EventForm({
             <Text style={styles.imagePickerText}>+ Add image</Text>
           )}
         </TouchableOpacity>
+        */}
 
         <Text style={styles.fieldLabel}>Event name</Text>
         <TextInput
