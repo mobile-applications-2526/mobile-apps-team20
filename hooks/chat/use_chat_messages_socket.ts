@@ -34,9 +34,7 @@ export const useChatMessageSocket = (chatId: string) => {
             },
         });
 
-        client.onConnect = () => {
-            console.log(`[STOMP] Connected to chat ${chatId}`);
-            
+        client.onConnect = () => {            
             client.subscribe(`/event/chat/${chatId}`, (message) => {
                 if (message.body) {
                     const parsedMessage: ChatMessage = JSON.parse(message.body);
@@ -45,19 +43,10 @@ export const useChatMessageSocket = (chatId: string) => {
             });
         };
 
-        client.onWebSocketClose = () => {
-            console.log('[STOMP] Connection closed');
-        };
-
-        client.onStompError = (frame) => {
-            console.error('[STOMP] Broker error: ' + frame.headers['message']);
-        };
-
         client.activate();
         clientRef.current = client;
 
         return () => {
-            console.log('[STOMP] Deactivating client...');
             client.deactivate();
         };
     }, [chatId, token]);
@@ -66,15 +55,12 @@ export const useChatMessageSocket = (chatId: string) => {
         if (clientRef.current?.connected) {
             const payload: ChatMessageRequest = { content };
             
-            console.log('[STOMP] Sending message:', content);
 
             clientRef.current.publish({
                 destination: `/app/event/${chatId}/send`,
                 body: JSON.stringify(payload),
             });
-        } else {
-            console.warn('[STOMP] Cannot send: Client not connected');
-        }
+        } 
     }, [chatId]);
 
     return { incomingMessage, sendMessage };
