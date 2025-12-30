@@ -17,6 +17,7 @@ export default function DiscoverPage() {
   const {
     events,
     loading,
+    emptyMessage,
     interestFilter,
     filterButtons,
     filterOptions,
@@ -59,7 +60,7 @@ export default function DiscoverPage() {
       {/* Events list */}
       <EventList
         events={events}
-        emptyComponentLabel={loading ? "Loading..." : "No events yet 😕"}
+        emptyComponentLabel={emptyMessage}
         contentContainerStyle={{ paddingTop: 0 }}
         onLoadMore={handleLoadMore}
         isLoadingMore={loading}

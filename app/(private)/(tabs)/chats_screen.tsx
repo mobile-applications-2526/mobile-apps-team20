@@ -93,7 +93,10 @@ export default function ChatsScreen() {
                 <View style={styles.textArea}>
                     <Text style={styles.name}>{item.eventName}</Text>
                     <Text style={styles.lastMessage} numberOfLines={1}>
-                        {item.lastMessage?.content || "Be the first one to say hello 👋"}
+                        {item.lastMessage 
+                            ? `${item.lastMessage.senderName}: ${item.lastMessage.content}`
+                            : "Be the first one to say hello 👋"
+                        }
                     </Text>
                 </View>
                 

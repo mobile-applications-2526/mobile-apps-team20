@@ -1,4 +1,5 @@
 import { ChatMessage } from '@/domain/model/entities/chat/chat_message';
+import { showErrorTop } from '@/shared/utils/show_toast_message';
 import { useUserAuthStore } from '@/store/auth/use_auth_store';
 import { useUserChatsStore } from '@/store/chat/use_user_chats_store';
 import { Client } from '@stomp/stompjs';
@@ -8,7 +9,6 @@ export const useUserChatListSocket = () => {
     const clientRef = useRef<Client | null>(null);
     const token = useUserAuthStore((state) => state.accessToken);
     
-    // We only need the update action, we don't need the list of chats anymore for subscription
     const { updateChatLastMessage } = useUserChatsStore();
     
     const SERVER_ADDRESS = process.env.EXPO_PUBLIC_SERVER_ADDRESS ?? "";
@@ -34,37 +34,26 @@ export const useUserChatListSocket = () => {
         });
 
         client.onConnect = () => {
-            console.log(`✅ [USER-STOMP] Connected to private channel.`);
             
             // SUBSCRIBE TO PRIVATE USER QUEUE
             // This allows receiving messages for ANY chat without subscribing to 100 topics
             client.subscribe(`/user/queue/chats`, (message) => {
                 if (message.body) {
                     try {
-                        const parsedMessage: ChatMessage = JSON.parse(message.body);
-                        // The message usually needs to contain the chatId inside it
-                        // assuming parsedMessage has a 'chatId' field or similar logic 
-
-                        console.log(`📩 [USER-STOMP] Recieved message ${parsedMessage.id}`);
-                        
+                        const parsedMessage: ChatMessage = JSON.parse(message.body);                        
                         updateChatLastMessage(parsedMessage);
                         
                     } catch (e) {
-                        console.error("Error parsing private message", e);
+                        showErrorTop('Error parsing incoming chat message');
                     }
                 }
             });
-        };
-
-        client.onStompError = (frame) => {
-            console.error('⚠️ [USER-STOMP] Error: ' + frame.headers['message']);
         };
 
         client.activate();
         clientRef.current = client;
 
         return () => {
-            console.log('🔌 [USER-STOMP] Deactivating...');
             client.deactivate();
         };
 

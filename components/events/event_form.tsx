@@ -1,8 +1,11 @@
 import { InterestTag } from "@/domain/model/enums/interest_tag";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
-import { Alert, Image, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
+import { InterestSelector } from "../shared/interest_selector";
+// 1. IMPORTAR EL MAPPER
+import { DateMapper } from "@/shared/utils/date_mapper";
 
 // Define the structure of the event form data
 export interface EventFormData {
@@ -24,7 +27,7 @@ export default function EventForm({
   formLabel
 }:
 {
-  onClose: () => void,                       
+  onClose: () => void,                      
   onFormSubmitted: (data: EventFormData) => void
   initialValues?: EventFormData;
   formLabel: string;                 
@@ -111,7 +114,7 @@ export default function EventForm({
     }
 
     onFormSubmitted(form);
-    setForm({                       
+    setForm({                      
       title: "",
       description: "",
       image: "",
@@ -124,10 +127,12 @@ export default function EventForm({
   };
 
   return (
-      <View>
-        <Text style={styles.modalHeader}>{formLabel}</Text>
+      <View style={{ flex: 1 }}> 
+        {/* Wrapped in View/ScrollView to ensure scrolling if content is too long */}
+        <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+          <Text style={styles.modalHeader}>{formLabel}</Text>
 
-        {/* Image picker area 
+        {/* Image picker area */}
         <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
           {imagePreviewUri ? (
             <Image
@@ -138,224 +143,239 @@ export default function EventForm({
             <Text style={styles.imagePickerText}>+ Add image</Text>
           )}
         </TouchableOpacity>
-        */}
 
-        <Text style={styles.fieldLabel}>Event name</Text>
-        <TextInput
-          placeholder="Event name"
-          value={form.title}
-          onChangeText={(text) => setForm({ ...form, title: text })}
-          style={styles.input}
-        />
-        <Text style={styles.fieldLabel}>Description</Text>
-        <TextInput
-          placeholder="Description"
-          value={form.description}
-          onChangeText={(text) => setForm({ ...form, description: text })}
-          style={styles.input}
-        />
+          <Text style={styles.fieldLabel}>Event name</Text>
+          <TextInput
+            placeholder="Event name"
+            value={form.title}
+            onChangeText={(text) => setForm({ ...form, title: text })}
+            style={styles.input}
+          />
+          <Text style={styles.fieldLabel}>Description</Text>
+          <TextInput
+            placeholder="Description"
+            value={form.description}
+            onChangeText={(text) => setForm({ ...form, description: text })}
+            style={styles.input}
+          />
 
-        {/* Location section */}
-        <View style={styles.sectionHeaderRow}>
-          <View style={styles.sectionDot} />
-          <Text style={styles.sectionHeaderText}>Location</Text>
-        </View>
-        {/* <TextInput  //TODO: Change to multi-select dropdown later
-          placeholder="Interests"
-          value={form.interests}
-          onChangeText={(text) => setForm({ ...form, interests: text })}
-          style={styles.input}
-        /> */}
-        <Text style={styles.fieldLabel}>City</Text>
-        <TextInput
-          placeholder="City"
-          value={form.city}
-          onChangeText={(text) => setForm({ ...form, city: text })}
-          style={styles.input}
-        />
-        <Text style={styles.fieldLabel}>Location name</Text>
-        <TextInput
-          placeholder="Location name"
-          value={form.placeName}
-          onChangeText={(text) => setForm({ ...form, placeName: text })}
-          style={styles.input}
-        />
-
-        {/* Time section */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionHeaderIcon}>🗓️</Text>
-          <Text style={styles.sectionHeaderText}>Time</Text>
-        </View>
-        <Text style={styles.fieldLabel}>Start date</Text>
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowStartDatePicker(true)}
-        >
-          <Text style={{ color: form.startDate ? "#000" : "#9ca3af" }}>
-            {startDateValue
-              ? startDateValue.toLocaleDateString()
-              : "Select start date"}
-          </Text>
-        </TouchableOpacity>
-        {showStartDatePicker && (
-          <DateTimePicker
-            value={startDateValue || new Date()}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={(_event, selectedDate) => {
-              if (Platform.OS !== "ios") {
-                setShowStartDatePicker(false);
-              }
-              if (selectedDate) {
-                // Preserve previous time if set
-                const base = startDateValue || new Date();
-                const combined = new Date(selectedDate);
-                combined.setHours(
-                  base.getHours(),
-                  base.getMinutes(),
-                  0,
-                  0
-                );
-                setStartDateValue(combined);
-                setForm((prev) => ({ ...prev, startDate: combined.toISOString() }));
-              }
+          {/* --- INTERESTS SECTION --- */}
+          <Text style={styles.fieldLabel}>Interests</Text>
+          <InterestSelector
+            // Convert Array -> String for the component
+            selectedInterestsString={form.interests ? form.interests.join(", ") : ""}
+            // Convert String -> Array for the Form State
+            onSelectionChange={(newString) => {
+              const newArray = newString
+                .split(",")
+                .map((s) => s.trim())
+                .filter((s) => s.length > 0) as InterestTag[];
+              
+              setForm((prev) => ({ ...prev, interests: newArray }));
             }}
           />
-        )}
-        <Text style={styles.fieldLabel}>Start time</Text>
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowStartTimePicker(true)}
-        >
-          <Text style={{ color: startDateValue ? "#000" : "#9ca3af" }}>
-            {startDateValue
-              ? startDateValue.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "Select start time"}
-          </Text>
-        </TouchableOpacity>
-        {showStartTimePicker && (
-          <DateTimePicker
-            value={startDateValue || new Date()}
-            mode="time"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={(_event, selectedTime) => {
-              if (Platform.OS !== "ios") {
-                setShowStartTimePicker(false);
-              }
-              if (selectedTime) {
-                const base = startDateValue || new Date();
-                const combined = new Date(base);
-                combined.setHours(
-                  selectedTime.getHours(),
-                  selectedTime.getMinutes(),
-                  0,
-                  0
-                );
-                setStartDateValue(combined);
-                setForm((prev) => ({ ...prev, startDate: combined.toISOString() }));
-              }
-            }}
-          />
-        )}
-        <Text style={styles.fieldLabel}>End date</Text>
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowEndDatePicker(true)}
-        >
-          <Text style={{ color: form.endDate ? "#000" : "#9ca3af" }}>
-            {endDateValue
-              ? endDateValue.toLocaleDateString()
-              : "Select end date"}
-          </Text>
-        </TouchableOpacity>
-        {showEndDatePicker && (
-          <DateTimePicker
-            value={endDateValue || new Date()}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={(_event, selectedDate) => {
-              if (Platform.OS !== "ios") {
-                setShowEndDatePicker(false);
-              }
-              if (selectedDate) {
-                const base = endDateValue || new Date();
-                const combined = new Date(selectedDate);
-                combined.setHours(
-                  base.getHours(),
-                  base.getMinutes(),
-                  0,
-                  0
-                );
-                setEndDateValue(combined);
-                setForm((prev) => ({ ...prev, endDate: combined.toISOString() }));
-              }
-            }}
-          />
-        )}
-        <Text style={styles.fieldLabel}>End time</Text>
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowEndTimePicker(true)}
-        >
-          <Text style={{ color: endDateValue ? "#000" : "#9ca3af" }}>
-            {endDateValue
-              ? endDateValue.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "Select end time"}
-          </Text>
-        </TouchableOpacity>
-        {showEndTimePicker && (
-          <DateTimePicker
-            value={endDateValue || new Date()}
-            mode="time"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={(_event, selectedTime) => {
-              if (Platform.OS !== "ios") {
-                setShowEndTimePicker(false);
-              }
-              if (selectedTime) {
-                const base = endDateValue || new Date();
-                const combined = new Date(base);
-                combined.setHours(
-                  selectedTime.getHours(),
-                  selectedTime.getMinutes(),
-                  0,
-                  0
-                );
-                setEndDateValue(combined);
-                setForm((prev) => ({ ...prev, endDate: combined.toISOString() }));
-              }
-            }}
-          />
-        )}
+          {/* ---------------------------------- */}
 
-        <View style={styles.formButtons}>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.cancelButton}>Cancel</Text>
-          </TouchableOpacity>
+          {/* Location section */}
+          <View style={styles.sectionHeaderRow}>
+            <View style={styles.sectionDot} />
+            <Text style={styles.sectionHeaderText}>Location</Text>
+          </View>
+        
+          <Text style={styles.fieldLabel}>City</Text>
+          <TextInput
+            placeholder="City"
+            value={form.city}
+            onChangeText={(text) => setForm({ ...form, city: text })}
+            style={styles.input}
+          />
+          <Text style={styles.fieldLabel}>Location name</Text>
+          <TextInput
+            placeholder="Location name"
+            value={form.placeName}
+            onChangeText={(text) => setForm({ ...form, placeName: text })}
+            style={styles.input}
+          />
+
+          {/* Time section */}
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionHeaderIcon}>🗓️</Text>
+            <Text style={styles.sectionHeaderText}>Time</Text>
+          </View>
+          <Text style={styles.fieldLabel}>Start date</Text>
           <TouchableOpacity
-            onPress={handleSave}
+            style={styles.input}
+            onPress={() => setShowStartDatePicker(true)}
           >
-            <Text
-              style={[
-                styles.saveButton,
-                !form.title.trim() && { color: "#aaa" },
-              ]}
-            >
-              Save
+            <Text style={{ color: form.startDate ? "#000" : "#9ca3af" }}>
+              {startDateValue
+                ? startDateValue.toLocaleDateString()
+                : "Select start date"}
             </Text>
           </TouchableOpacity>
-        </View>
+          {showStartDatePicker && (
+            <DateTimePicker
+              value={startDateValue || new Date()}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(_event, selectedDate) => {
+                if (Platform.OS !== "ios") {
+                  setShowStartDatePicker(false);
+                }
+                if (selectedDate) {
+                  // Preserve previous time if set
+                  const base = startDateValue || new Date();
+                  const combined = new Date(selectedDate);
+                  combined.setHours(
+                    base.getHours(),
+                    base.getMinutes(),
+                    0,
+                    0
+                  );
+                  setStartDateValue(combined);
+                  // 2. CORREGIDO: Usar toISOStringLocal
+                  setForm((prev) => ({ ...prev, startDate: DateMapper.toISOStringLocal(combined) }));
+                }
+              }}
+            />
+          )}
+          <Text style={styles.fieldLabel}>Start time</Text>
+          <TouchableOpacity
+            style={styles.input}
+            onPress={() => setShowStartTimePicker(true)}
+          >
+            <Text style={{ color: startDateValue ? "#000" : "#9ca3af" }}>
+              {startDateValue
+                ? startDateValue.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "Select start time"}
+            </Text>
+          </TouchableOpacity>
+          {showStartTimePicker && (
+            <DateTimePicker
+              value={startDateValue || new Date()}
+              mode="time"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(_event, selectedTime) => {
+                if (Platform.OS !== "ios") {
+                  setShowStartTimePicker(false);
+                }
+                if (selectedTime) {
+                  const base = startDateValue || new Date();
+                  const combined = new Date(base);
+                  combined.setHours(
+                    selectedTime.getHours(),
+                    selectedTime.getMinutes(),
+                    0,
+                    0
+                  );
+                  setStartDateValue(combined);
+                  // 3. CORREGIDO: Usar toISOStringLocal
+                  setForm((prev) => ({ ...prev, startDate: DateMapper.toISOStringLocal(combined) }));
+                }
+              }}
+            />
+          )}
+          <Text style={styles.fieldLabel}>End date</Text>
+          <TouchableOpacity
+            style={styles.input}
+            onPress={() => setShowEndDatePicker(true)}
+          >
+            <Text style={{ color: form.endDate ? "#000" : "#9ca3af" }}>
+              {endDateValue
+                ? endDateValue.toLocaleDateString()
+                : "Select end date"}
+            </Text>
+          </TouchableOpacity>
+          {showEndDatePicker && (
+            <DateTimePicker
+              value={endDateValue || new Date()}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(_event, selectedDate) => {
+                if (Platform.OS !== "ios") {
+                  setShowEndDatePicker(false);
+                }
+                if (selectedDate) {
+                  const base = endDateValue || new Date();
+                  const combined = new Date(selectedDate);
+                  combined.setHours(
+                    base.getHours(),
+                    base.getMinutes(),
+                    0,
+                    0
+                  );
+                  setEndDateValue(combined);
+                  // 4. CORREGIDO: Usar toISOStringLocal
+                  setForm((prev) => ({ ...prev, endDate: DateMapper.toISOStringLocal(combined) }));
+                }
+              }}
+            />
+          )}
+          <Text style={styles.fieldLabel}>End time</Text>
+          <TouchableOpacity
+            style={styles.input}
+            onPress={() => setShowEndTimePicker(true)}
+          >
+            <Text style={{ color: endDateValue ? "#000" : "#9ca3af" }}>
+              {endDateValue
+                ? endDateValue.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "Select end time"}
+            </Text>
+          </TouchableOpacity>
+          {showEndTimePicker && (
+            <DateTimePicker
+              value={endDateValue || new Date()}
+              mode="time"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(_event, selectedTime) => {
+                if (Platform.OS !== "ios") {
+                  setShowEndTimePicker(false);
+                }
+                if (selectedTime) {
+                  const base = endDateValue || new Date();
+                  const combined = new Date(base);
+                  combined.setHours(
+                    selectedTime.getHours(),
+                    selectedTime.getMinutes(),
+                    0,
+                    0
+                  );
+                  setEndDateValue(combined);
+                  // 5. CORREGIDO: Usar toISOStringLocal
+                  setForm((prev) => ({ ...prev, endDate: DateMapper.toISOStringLocal(combined) }));
+                }
+              }}
+            />
+          )}
+
+          <View style={styles.formButtons}>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.cancelButton}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSave}
+            >
+              <Text
+                style={[
+                  styles.saveButton,
+                  !form.title.trim() && { color: "#aaa" },
+                ]}
+              >
+                Save
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </View>
   );
 }
 
-// Styles for the modal and form
 const styles = StyleSheet.create({
   modalHeader: {
     fontSize: 20,
@@ -423,6 +443,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 20,
+    marginBottom: 20,
   },
   cancelButton: { color: "#555", fontSize: 16 },
   saveButton: { color: "#007AFF", fontWeight: "bold", fontSize: 16 },

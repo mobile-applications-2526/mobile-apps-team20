@@ -4,14 +4,21 @@ import { FilterTag } from "@/domain/model/enums/filter_tag";
 import { InterestTag } from "@/domain/model/enums/interest_tag";
 import { EventRepository } from "@/domain/repository/events/event_repository";
 import { useEventFilter } from "@/hooks/events/use_event_filter";
+import { DateMapper } from "@/shared/utils/date_mapper"; 
 import { useEventFilterStore } from "@/store/events/use_event_filter_store";
 import { useEventsStore } from "@/store/events/use_events_store_factory";
 import { useUserEventStore } from "@/store/events/user_events_store";
+import { useUserProfileStore } from "@/store/user/use_user_profile_store";
 import { useCallback, useEffect, useState } from "react";
 
 export const useDiscoverPage = () => {
-    // --- Global Store Data ---
+
+    // User Profile data for initial state
+    const userProfile = useUserProfileStore((s) => s.profile);
+    const fetchProfile = useUserProfileStore((s) => s.fetchProfile);
+    const userCity = userProfile?.city || ""
     const interestFilter = useEventFilterStore((s) => s.interestFilter);
+
     const setInterest = useEventFilterStore((s) => s.setInterest);
     const createEvent = useUserEventStore((s) => s.createEvent);
 
@@ -20,13 +27,33 @@ export const useDiscoverPage = () => {
 
     // --- Local Search State (Strategy Inputs) ---
     const [tagMode, setTagMode] = useState<FilterTag>(FilterTag.Location);
-    const [location, setLocation] = useState("Leuven");
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]); // YYYY-MM-DD
-
+    const [location, setLocation] = useState(userCity);
+    
+    // CHANGED: Use DateMapper to ensure local date is used, not UTC
+    const [date, setDate] = useState(DateMapper.toISOStringLocal(new Date()));
+    
     // --- UI State ---
     const [showForm, setShowForm] = useState(false);
     const [activeFilterRender, setActiveFilterRender] = useState<(() => React.ReactNode) | null>(null);
     const [filterVisible, setFilterVisible] = useState(false);
+
+    const emptyMessage =
+       loading ? "Loading..." 
+            : userCity === "" ?
+              "Fill in your city at your profile or activate your location to see local events 📍"
+              : "No events in " + userCity + " yet  😕"
+
+    // Initial fetch for user profile
+    useEffect(() => {
+        if (!userProfile) {
+            fetchProfile()
+        }
+    }, [userProfile, fetchProfile])
+
+    // Listener for changes at the profile
+    useEffect(() => {
+        setLocation(userProfile?.city || "")
+    }, [userProfile?.city])
 
     // --- Helpers ---
     const closeFilter = () => {
@@ -42,6 +69,7 @@ export const useDiscoverPage = () => {
         onModeChange: setTagMode,
     });
 
+    // Use Object.values logic we discussed earlier if InterestTag is a String Enum
     const filterButtons = Object.values(InterestTag).map((tag) => ({
         key: tag,
         label: tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase(),
@@ -100,10 +128,12 @@ export const useDiscoverPage = () => {
     return {
         // Data
         events,
+        userCity,
         loading,
         interestFilter,
         filterButtons,
         filterOptions,
+        emptyMessage,
         
         // UI State
         showForm,

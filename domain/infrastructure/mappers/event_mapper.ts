@@ -5,9 +5,20 @@ import { EventItem } from "@/domain/model/entities/events/event_item";
 import { EventOrganiser } from "@/domain/model/entities/events/event_organiser";
 import { mapProfileToFrontend, processImage } from "./user_profile_mapper";
 
+// --- Helper: Fix Timezone Shift ---
+// Converts "2023-11-18T10:00:00.000Z" (UTC) back to "2023-11-18T11:00:00" (Local Time)
+// This ensures the backend receives the exact time the user selected on their clock.
+const toLocalISOString = (isoString: string): string => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    // Shift time by the timezone offset to get the correct local representation
+    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+    // Return ISO string without the 'Z' at the end
+    return localDate.toISOString().slice(0, -1); 
+};
 
 export const mapEventToFrontend = (dto: EventResponseDTO): EventItem => {
-    
+    // ... (tu código existente aquí, sin cambios) ...
     let organiserMapped: EventOrganiser;
 
     if (dto.organiser) {
@@ -42,16 +53,14 @@ export const mapEventFormToDTO = (formData: EventFormData): EventRequestDTO => {
         name: formData.title.trim(),
         eventBio: {
             description: formData.description.trim(),
-            // If image is empty or missing, send null explicitly; otherwise trimmed string
             image: formData.image?.trim() ? formData.image.trim() : null,
-            // Ensure interests is an array even if undefined in form
             interestTags: formData.interests ?? [],
         },
         location: {
             city: formData.city.trim(),
             placeName: formData.placeName.trim(),
         },
-    startDate: formData.startDate,
-    endDate: formData.endDate,
+        startDate: toLocalISOString(formData.startDate), 
+        endDate: toLocalISOString(formData.endDate),
   };
 };

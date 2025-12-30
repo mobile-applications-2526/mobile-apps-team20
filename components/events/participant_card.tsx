@@ -1,5 +1,5 @@
 import React from "react";
-import { Image, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Image, Text, TouchableOpacity, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 type ParticipantCardProps = {
@@ -20,14 +20,19 @@ export default function ParticipantCard ({
 }: ParticipantCardProps) {
     return (
         <TouchableOpacity style={styles.participantCard} onPress={onPress}>
-            <Image 
-              source={
-                participantImage 
-                ? {uri: participantImage} 
-                : require("@/assets/images/no_user_image.jpg")
-              } 
-              style={styles.image} 
-            />
+            {participantImage ? (
+                <Image 
+                  source={{ uri: participantImage }} 
+                  style={styles.image} 
+                />
+            ) : (
+                <View style={[styles.image, styles.placeholder]}>
+                    <Text style={styles.placeholderText}>
+                        {participantName.charAt(0).toUpperCase()}
+                    </Text>
+                </View>
+            )}
+            
             <Text style={styles.participantName}>{participantName}</Text>
             <Ionicons name="chevron-forward-outline" size={24} color="#BDBDBD" />
         </TouchableOpacity>
@@ -60,11 +65,21 @@ const styles = StyleSheet.create({
     flex: 1, // Ensures name takes available space and pushes chevron to the end
   },
   image: {
-    width: 40,         // Fixed width (small)
-    height: 40,        // Fixed height (small)
-    borderRadius: 20,  // Exactly half of width/height -> Circle
-    marginRight: 15,   // Space between image and name
+    width: 40,        // Fixed width (small)
+    height: 40,       // Fixed height (small)
+    borderRadius: 20, // Exactly half of width/height -> Circle
+    marginRight: 15,  // Space between image and name
     resizeMode: 'cover', 
   }, 
+  // Nuevos estilos para el avatar de letra
+  placeholder: {
+    backgroundColor: "#007AFF", // Azul estilo sistema
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  placeholderText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  }
 });
-

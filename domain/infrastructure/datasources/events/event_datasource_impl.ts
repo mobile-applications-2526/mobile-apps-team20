@@ -52,6 +52,7 @@ export class EventDataSourceImpl implements EventDataSource {
   
   /** GET /api/events/by-date?eventDate=2025-10-15T00:00:00 */
   async getEventsByDateAscending(eventDateISO: string, page: number): Promise<EventListRestult> {
+    console.log("Fetching events for date:", eventDateISO, "page:", page);
     const response = await this.api.get<PaginatedResponse<EventResponseDTO>>(`/events/by-date`, {
       eventDate: eventDateISO,
       page: page,
@@ -85,6 +86,7 @@ export class EventDataSourceImpl implements EventDataSource {
   }
 
   async getEventsByDateAndTags(eventDateISO: string, tags: InterestTag[], page: number): Promise<EventListRestult> {
+        console.log("Fetching events for date:", eventDateISO, "page:", page);
     const response = await this.api.get<PaginatedResponse<EventResponseDTO>>(`/events/by-date-and-interests`, {
       eventDate: eventDateISO,
       tags: tags,
@@ -106,6 +108,7 @@ export class EventDataSourceImpl implements EventDataSource {
   
   /** POST /api/events (auth) */
   async createEvent(request: EventRequestDTO): Promise<EventItem> {
+    console.log("Creating event with request:", JSON.stringify(request));
     const response = await this.api.post<EventResponseDTO>(`/events`, request);
     return mapEventToFrontend(response);
   }

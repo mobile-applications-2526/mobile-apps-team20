@@ -26,17 +26,21 @@ export default function EventHeaderCard({
 }: EventHeaderCardProps) {
   return (
     <View style={[styles.card, styles.headerCard]}>
-        {/* Wrapper View for the image */}
-      {/* <View style={styles.imageContainer}> */}
+      
+      {/* Logic for Image or Light Gray Placeholder */}
+      {event.eventImage ? (
         <Image 
-          source={
-            event.eventImage 
-            ? {uri: event.eventImage} 
-            : require("@/assets/images/no_event_image.jpg")
-          } 
+          source={{ uri: event.eventImage }} 
           style={styles.roundImage} 
         />
-      {/* </View> */}
+      ) : (
+        <View style={[styles.roundImage, styles.placeholder]}>
+          <Text style={styles.placeholderText}>
+            {event.title ? event.title.charAt(0).toUpperCase() : "?"}
+          </Text>
+        </View>
+      )}
+
       <Text style={styles.title}>{event.title}</Text>
 
       {/* Event date info component */}
@@ -49,7 +53,6 @@ export default function EventHeaderCard({
 
       <View style={styles.divider} />
 
-      {/* Fixed: Added missing 'style' prop */}
       <Text style={styles.description}>{event.description}</Text>
     </View>
   );
@@ -70,18 +73,8 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   headerCard: {
-    marginTop: 60, // Provides space for the floating back button
+    marginTop: 60, 
     alignItems: "center",
-  },
-  iconCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#e6f0ff",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-    elevation: 3,
   },
   title: {
     fontSize: 24,
@@ -103,12 +96,22 @@ const styles = StyleSheet.create({
     marginVertical: 15,
     alignSelf: "center",
   },
-
   roundImage: {
-    width: '80%',       // Ocupa todo el ancho de la tarjeta
-    height: 180,         // Altura fija para buen aspecto
-    borderRadius: 80,    // Bordes redondeados suaves
-    resizeMode: 'cover', // La imagen llena el espacio sin deformarse
+    width: '80%',        
+    height: 180,         
+    borderRadius: 80,    
+    resizeMode: 'cover', 
     marginBottom: 20,
   },
+  // --- UPDATED STYLES START ---
+  placeholder: {
+    backgroundColor: "#F2F2F7", // Very light gray (Matches other screens)
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  placeholderText: {
+    color: "#1C1C1E", // Dark text (Matches other screens)
+    fontSize: 60, 
+    fontWeight: "bold",
+  }
 });

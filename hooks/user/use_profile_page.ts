@@ -7,14 +7,24 @@ export const useProfilePage = () => {
   const user = useUserAuthStore((state) => state.user);
   const logout = useUserAuthStore((state) => state.logout);
 
-  const { profile, isLoading, error, fetchProfile, updateProfile } =
+  const { profile, isLoading, error, fetchProfile, updateProfile, clearProfile } =
     useUserProfileStore();
 
+  // Track which username the current profile belongs to
+  const [lastProfileOwner, setLastProfileOwner] = useState<string | null>(null);
+
+  const usernameKey = user?.username || user?.email || null;
+
   useEffect(() => {
-    if (!profile && !isLoading) {
+    if (!usernameKey) return;
+
+    // When the logged-in user changes, clear any previous profile and fetch a new one
+    if (lastProfileOwner !== usernameKey) {
+      setLastProfileOwner(usernameKey);
+      clearProfile();
       fetchProfile();
     }
-  }, [profile, isLoading, fetchProfile]);
+  }, [usernameKey, lastProfileOwner, clearProfile, fetchProfile]);
 
   const displayName =
     profile?.name || user?.username || user?.email || "Your Name";
@@ -91,6 +101,9 @@ export const useProfilePage = () => {
   const handleSubmitEdit = async () => {
     const languages = editLanguages;
 
+    // Trim trailing/leading spaces from username to avoid mismatches
+    const safeUserName = editUserName.trim();
+
     const nationalityString = editNationality.join(", ");
 
     const interests = editInterests
@@ -101,7 +114,7 @@ export const useProfilePage = () => {
     const ageNumber = Number(editAge) || 0;
 
     await updateProfile({
-      userName: editUserName,
+      userName: safeUserName,
       nationality: nationalityString,
       languages,
       age: ageNumber,

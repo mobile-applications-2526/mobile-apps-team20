@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View, Image } from "react-native";
 import { EventItem } from "@/domain/model/entities/events/event_item"; // Adjust path if needed
-import { Calendar, Clock, MapPin, Image as ImageIcon } from "lucide-react-native";
+import { Calendar, Clock, MapPin } from "lucide-react-native";
 import { dateParser } from "@/shared/utils/date_parser_util";
 
 export default function EventCard({
@@ -18,10 +18,9 @@ export default function EventCard({
   const end = dateParser(event.endDate);
 
   // Formatting to match design: "Fri, Nov 15, 2023"
-  // Note: We slice the parser output to get 3-letter abbreviations
   const formattedDate = `${start.dayName.slice(0, 3)}, ${start.month.slice(0, 3)} ${start.day}, ${start.year}`;
   
-  // Formatting to match design: "7:00 PM - 11:00 PM" (or 19:00 based on parser)
+  // Formatting to match design: "7:00 PM - 11:00 PM"
   const formattedTime = `${start.time} - ${end.time}`;
 
   const handlePress = () => {
@@ -52,8 +51,10 @@ export default function EventCard({
             />
           ) : (
             <View style={styles.placeholder}>
-              {/* Fallback pattern/icon matching the design gray box */}
-              <ImageIcon size={48} color="#9CA3AF" />
+               {/* Letter instead of Icon */}
+               <Text style={styles.placeholderText}>
+                 {event.title ? event.title.charAt(0).toUpperCase() : "?"}
+               </Text>
             </View>
           )}
         </View>
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     height: 140, // Height based on visual proportion
     width: "100%",
-    backgroundColor: "#F3F4F6", // Light gray background
+    backgroundColor: "#e0e0e0",
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
   },
@@ -126,7 +127,12 @@ const styles = StyleSheet.create({
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#E5E7EB", // Gray-200
+    backgroundColor: "#F2F2F7", // Very light gray (Matches ChatsScreen)
+  },
+  placeholderText: {
+    color: "#1C1C1E", // Dark text (Matches ChatsScreen)
+    fontSize: 50,
+    fontWeight: "bold",
   },
   detailsContainer: {
     padding: 16,

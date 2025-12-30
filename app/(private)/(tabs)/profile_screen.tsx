@@ -1,6 +1,3 @@
-import { useProfilePage } from "@/hooks/user/use_profile_page";
-import { countries } from "countries-list";
-import ISO6391 from "iso-639-1";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   BackHandler,
@@ -14,33 +11,22 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { countries } from "countries-list";
+import ISO6391 from "iso-639-1";
 
-const Section = ({
-  title,
-  children,
-  defaultOpen = true,
-}: {
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}) => {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <View style={styles.section}>
-      <TouchableOpacity onPress={() => setOpen(!open)} style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{title}</Text>
-        <Text>{open ? '▲' : '▼'}</Text>
-      </TouchableOpacity>
-      {open && <View style={styles.sectionBody}>{children}</View>}
-    </View>
-  );
-};
+// Custom Hooks
+import { useProfilePage } from "@/hooks/user/use_profile_page";
+
+// Components
+import { Section } from "@/components/shared/section"; // Adjust path
+import { InterestSelector } from "@/components/shared/interest_selector";
 
 export default function ProfileScreen() {
   const {
     displayName,
     subtitle,
     interests,
+    error,
     isEditOpen,
     editUserName,
     editNationality,
@@ -56,7 +42,7 @@ export default function ProfileScreen() {
     setEditAge,
     setEditCity,
     setEditCountry,
-    setEditInterests,
+    setEditInterests, // This updates the string in the store/hook
     setEditBio,
     handleCloseEdit,
     handleSubmitEdit,
@@ -72,13 +58,14 @@ export default function ProfileScreen() {
   const [isLanguagePickerOpen, setIsLanguagePickerOpen] = useState(false);
   const [isNationalityPickerOpen, setIsNationalityPickerOpen] = useState(false);
 
+  // Handle hardware back button on Android when modal is open
   useEffect(() => {
     const onBackPress = () => {
       if (isEditOpen) {
         handleCloseEdit();
-        return true; // prevent default back behavior
+        return true; 
       }
-      return false; // let default handler run
+      return false;
     };
 
     const subscription = BackHandler.addEventListener(
@@ -89,6 +76,7 @@ export default function ProfileScreen() {
     return () => subscription.remove();
   }, [isEditOpen, handleCloseEdit]);
 
+  // Memoize static data
   const languageOptions = useMemo(
     () =>
       ISO6391.getAllCodes()
@@ -117,6 +105,12 @@ export default function ProfileScreen() {
         <Text style={styles.name}>{displayName}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
 
+        {error ? (
+          <Text style={styles.errorText}>
+            Could not load your profile: {error}
+          </Text>
+        ) : null}
+
         <View style={styles.row}>
           <TouchableOpacity style={styles.button} onPress={handleEditProfile}>
             <Text style={styles.buttonText}>Edit Profile</Text>
@@ -143,11 +137,13 @@ export default function ProfileScreen() {
         <Section title="Nationality" defaultOpen={false}>
           <Text>{nationalityText}</Text>
         </Section>
+        
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
 
+      {/* Edit Modal */}
       <Modal
         visible={isEditOpen}
         animationType="slide"
@@ -172,15 +168,17 @@ export default function ProfileScreen() {
                 style={styles.input}
                 placeholder="Username"
                 value={editUserName}
-                onChangeText={setEditUserName}
+                onChangeText={(text) => {
+                  const cleaned = text.replace(/\s+$/g, "");
+                  setEditUserName(cleaned);
+                }}
               />
 
+              {/* Nationality Dropdown */}
               <Text style={styles.fieldLabel}>Nationality</Text>
               <TouchableOpacity
                 style={styles.input}
-                onPress={() =>
-                  setIsNationalityPickerOpen((prev) => !prev)
-                }
+                onPress={() => setIsNationalityPickerOpen((prev) => !prev)}
               >
                 <Text
                   style={{
@@ -228,6 +226,7 @@ export default function ProfileScreen() {
                 </View>
               )}
 
+              {/* Languages Dropdown */}
               <Text style={styles.fieldLabel}>Languages</Text>
               <TouchableOpacity
                 style={styles.input}
@@ -299,11 +298,10 @@ export default function ProfileScreen() {
               />
 
               <Text style={styles.fieldLabel}>Interests</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Interests (comma separated, e.g. SPORTS)"
-                value={editInterests}
-                onChangeText={setEditInterests}
+              {/* Using the new separate component */}
+              <InterestSelector
+                selectedInterestsString={editInterests}
+                onSelectionChange={setEditInterests}
               />
 
               <Text style={styles.fieldLabel}>Bio</Text>
@@ -356,6 +354,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 24,
   },
+  errorText: {
+    color: "#dc2626",
+    textAlign: "center",
+    marginBottom: 12,
+  },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -380,26 +383,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   chipText: { color: "#0066cc" },
-  section: {
-    borderRadius: 12,
-    backgroundColor: "#fff",
-    marginBottom: 12,
-    overflow: "hidden",
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 16,
-    backgroundColor: "#e3edf7",
-  },
-  sectionTitle: { fontWeight: "600" },
-  sectionBody: { padding: 16 },
   avatarWrapper: {
     marginTop: 40,
     alignItems: "center",
     justifyContent: "center",
   },
-  // Modified avatar styles
   avatar: {
     width: 96,
     height: 96,
