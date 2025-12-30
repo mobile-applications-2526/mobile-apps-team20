@@ -12,6 +12,7 @@ interface UserProfileStore {
 
   fetchProfile: () => Promise<void>;
   updateProfile: (payload: UserProfileUpdateRequest) => Promise<void>;
+  clearProfile: () => void;
 }
 
 const userProfileRepository = container.userProfileRepository;
@@ -36,7 +37,7 @@ export const useUserProfileStore = create<UserProfileStore>((set, get) => ({
       const current = get().profile;
 
       let userProfileId: string;
-      if (current && current.id) {
+      if (current && current.id && current.id !== "no-profile-id") {
         userProfileId = current.id;
       } else {
         const authUser = useUserAuthStore.getState().user;
@@ -52,6 +53,9 @@ export const useUserProfileStore = create<UserProfileStore>((set, get) => ({
     } catch (e: unknown) {
       set({ error: getErrorMessage(e), isLoading: false });
     }
+  },
+  clearProfile: () => {
+    set({ profile: null, error: null, isLoading: false });
   },
 }));
 

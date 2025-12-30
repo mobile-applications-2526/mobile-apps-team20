@@ -41,6 +41,7 @@ export default function ProfileScreen() {
     displayName,
     subtitle,
     interests,
+    error,
     isEditOpen,
     editUserName,
     editNationality,
@@ -117,6 +118,12 @@ export default function ProfileScreen() {
         <Text style={styles.name}>{displayName}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
 
+        {error ? (
+          <Text style={styles.errorText}>
+            Could not load your profile: {error}
+          </Text>
+        ) : null}
+
         <View style={styles.row}>
           <TouchableOpacity style={styles.button} onPress={handleEditProfile}>
             <Text style={styles.buttonText}>Edit Profile</Text>
@@ -172,7 +179,11 @@ export default function ProfileScreen() {
                 style={styles.input}
                 placeholder="Username"
                 value={editUserName}
-                onChangeText={setEditUserName}
+                onChangeText={(text) => {
+                  // Prevent trailing spaces in the username
+                  const cleaned = text.replace(/\s+$/g, "");
+                  setEditUserName(cleaned);
+                }}
               />
 
               <Text style={styles.fieldLabel}>Nationality</Text>
@@ -355,6 +366,11 @@ const styles = StyleSheet.create({
     color: "#777",
     textAlign: "center",
     marginBottom: 24,
+  },
+  errorText: {
+    color: "#dc2626",
+    textAlign: "center",
+    marginBottom: 12,
   },
   row: {
     flexDirection: "row",
