@@ -1,8 +1,9 @@
 import { useProfilePage } from "@/hooks/user/use_profile_page";
 import { countries } from "countries-list";
 import ISO6391 from "iso-639-1";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
+  BackHandler,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -71,6 +72,23 @@ export default function ProfileScreen() {
   const [isLanguagePickerOpen, setIsLanguagePickerOpen] = useState(false);
   const [isNationalityPickerOpen, setIsNationalityPickerOpen] = useState(false);
 
+  useEffect(() => {
+    const onBackPress = () => {
+      if (isEditOpen) {
+        handleCloseEdit();
+        return true; // prevent default back behavior
+      }
+      return false; // let default handler run
+    };
+
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      onBackPress
+    );
+
+    return () => subscription.remove();
+  }, [isEditOpen, handleCloseEdit]);
+
   const languageOptions = useMemo(
     () =>
       ISO6391.getAllCodes()
@@ -130,7 +148,12 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </ScrollView>
 
-      <Modal visible={isEditOpen} animationType="slide" transparent>
+      <Modal
+        visible={isEditOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={handleCloseEdit}
+      >
         <KeyboardAvoidingView
           style={styles.editOverlay}
           behavior={Platform.OS === "ios" ? "padding" : "height"}

@@ -89,7 +89,6 @@ export const useProfilePage = () => {
   };
 
   const handleSubmitEdit = async () => {
-    if (!profile) return;
     const languages = editLanguages;
 
     const nationalityString = editNationality.join(", ");

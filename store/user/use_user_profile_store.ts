@@ -2,6 +2,7 @@ import { container } from "@/dependency_injection/container";
 import { UserProfileUpdateRequest } from "@/domain/model/dto/user/user_profile_update_request";
 import { UserProfile } from "@/domain/model/entities/events/user_profile";
 import { getErrorMessage } from "@/shared/utils/error_utils";
+import { useUserAuthStore } from "@/store/auth/use_auth_store";
 import { create } from "zustand";
 
 interface UserProfileStore {
@@ -33,11 +34,20 @@ export const useUserProfileStore = create<UserProfileStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const current = get().profile;
-      if (!current) {
-        throw new Error("Cannot update profile: no profile loaded");
+
+      let userProfileId: string;
+      if (current && current.id) {
+        userProfileId = current.id;
+      } else {
+        const authUser = useUserAuthStore.getState().user;
+        if (!authUser) {
+          throw new Error("Cannot update profile: no user logged in");
+        }
+        // Fallback: use username (or email) as identifier when no profile exists yet
+        userProfileId = authUser.username || authUser.email;
       }
 
-      const profile = await userProfileRepository.updateMyProfile(current.id, payload);
+      const profile = await userProfileRepository.updateMyProfile(userProfileId, payload);
       set({ profile, isLoading: false });
     } catch (e: unknown) {
       set({ error: getErrorMessage(e), isLoading: false });
