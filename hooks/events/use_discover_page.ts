@@ -39,10 +39,11 @@ export const useDiscoverPage = () => {
     const [filterVisible, setFilterVisible] = useState(false);
 
     const emptyMessage =
-       loadingEvents ? "Loading..." 
+        loadingLocation ? "Updating location..."
+            : loadingEvents ? "Loading..." 
             : !location ?
               "Fill in your city at your profile or activate your location to see local events 📍"
-              : "No events in " + location + " yet  😕"
+              : "No events in " + location + " yet 😕"
 
     // Initial fetch for user profile
     useEffect(() => {
@@ -54,18 +55,20 @@ export const useDiscoverPage = () => {
     useEffect(() => {
         if (loadingLocation) return;
 
-        if (currentCity) {
+        if (currentCity && !location) {
             setLocation(currentCity);
         }
-    }, [currentCity])
+    }, [currentCity, loadingLocation, location])
 
     // Update location when profile changes
     useEffect(() => {
+        if (loadingLocation) return;
+
         // If no location from other sources, use profile city
-        if (userProfile?.city && !currentCity) {
+        if (userProfile?.city && !location && !currentCity) {
             setLocation(userProfile.city);
         }
-    }, [userProfile?.city, currentCity])
+    }, [userProfile?.city, currentCity, location, loadingLocation])
 
     // --- Helpers ---
     const closeFilter = () => {
@@ -140,10 +143,22 @@ export const useDiscoverPage = () => {
        if (loadingEvents || loadingLocation) return;
 
        // Refresh user location
-       await refreshLocation();
-        
-        refreshState(); // Resets page=1 and events=[]
-        await loadNextPage(fetchStrategy); // Forces immediate load
+       const detectedCity = await refreshLocation();
+
+       const shouldUpdateLocation = tagMode === FilterTag.Location 
+                                    && detectedCity !== undefined 
+                                    && detectedCity !== location;
+       
+       if (shouldUpdateLocation) {
+           // This state change will trigger the main useEffect to fetch data.
+           // We return early to avoid a double fetch.
+           setLocation(detectedCity);
+       } else {
+           // Location didn't change (or we are in Date mode), so the useEffect won't run.
+           // We must fetch manually.
+           refreshState();
+           await loadNextPage(fetchStrategy);
+       }
     }
 
     return {

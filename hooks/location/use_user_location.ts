@@ -7,70 +7,67 @@ export const useUserLocation = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const getUserLocation = useCallback(async (isManualRefresh = false) => {
+  const getUserLocation = useCallback(async (isManualRefresh = false): Promise<string | null | undefined> => {
     setLoading(true);
     setErrorMsg(null);
 
     try {
-      // Check existing status without asking (Silent check)
       const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
-
-      // Logic to decide if the popup is shown
       let finalStatus = existingStatus;
 
-      // If we don't have permission and it's a manual refresh,
       if (isManualRefresh && existingStatus !== 'granted') {
          setLoading(false);
-         return; 
+         return null; // Return null (no location)
       }
 
-      // If it's the first load (not manual refresh) and we don't have permission,
       if (existingStatus !== 'granted') {
         const { status } = await Location.requestForegroundPermissionsAsync();
         finalStatus = status;
       }
 
-      // If permission denied after all checks, stop.
       if (finalStatus !== 'granted') {
         setErrorMsg('Permission to access location was denied');
         setLoading(false);
-        return;
+        return null; // Return null
       }
 
-      // Check if GPS is actually enabled
       const isGPSEnabled = await Location.hasServicesEnabledAsync();
 
       if (!isGPSEnabled) {
-          // If GPS is off and we are manually refreshing
           if (isManualRefresh) {
-              setLoading(false);
-              return; 
+            setLocation(null)
+            setCity(null);
+            setErrorMsg('GPS is disabled');
+            setLoading(false);
+            return null; // Return null (Explicitly indicate location is gone)
           }
       }
 
-      // Get Position 
-      // We use balanced accuracy for better speed and battery life
       let currentLocation = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced, 
       });
       
       setLocation(currentLocation);
 
-      // Reverse Geocoding to get the City name
+      let detectedCity = null; // Default to null
       let address = await Location.reverseGeocodeAsync(currentLocation.coords);
+
       if (address && address.length > 0) {
-        const detectedCity = address[0].city || address[0].region || address[0].subregion;
-        setCity(detectedCity || null);
+        detectedCity = address[0].city || address[0].region || address[0].subregion || null;
+        setCity(detectedCity);
       }
+      
+      return detectedCity; 
 
     } catch (error) {
       setErrorMsg('Error fetching location');
+      return undefined; // Return undefined on error to prevent state overwrite
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Auto-fetch on mount (isManualRefresh = false)
+  // Auto-fetch on mount
   useEffect(() => {
     getUserLocation(false);
   }, [getUserLocation]);
