@@ -4,12 +4,13 @@ import { FilterTag } from "@/domain/model/enums/filter_tag";
 import { InterestTag } from "@/domain/model/enums/interest_tag";
 import { EventRepository } from "@/domain/repository/events/event_repository";
 import { useEventFilter } from "@/hooks/events/use_event_filter";
-import { DateMapper } from "@/shared/utils/date_mapper"; 
+import { DateMapper } from "@/shared/utils/date_mapper";
 import { useEventFilterStore } from "@/store/events/use_event_filter_store";
 import { useEventsStore } from "@/store/events/use_events_store_factory";
 import { useUserEventStore } from "@/store/events/user_events_store";
 import { useUserProfileStore } from "@/store/user/use_user_profile_store";
 import { useCallback, useEffect, useState } from "react";
+import { useUserLocation } from "../location/use_user_location";
 
 export const useDiscoverPage = () => {
 
@@ -22,13 +23,15 @@ export const useDiscoverPage = () => {
     const createEvent = useUserEventStore((s) => s.createEvent);
 
     // --- Pagination Store Hooks ---
-    const { events, loadNextPage, reset: refreshState, loading, hasMore } = useEventsStore();
+    const { events, loadNextPage, reset: refreshState, loadingEvents: loadingEvents, hasMore } = useEventsStore();
 
     // --- Local Search State (Strategy Inputs) ---
     const [tagMode, setTagMode] = useState<FilterTag>(FilterTag.Location);
-    const [location, setLocation] = useState<string | null>(userProfile?.city || null);
-    
     const [date, setDate] = useState(DateMapper.toISOStringLocal(new Date()));
+
+    // Load user location
+    const { currentCity, loadingLocation, refreshLocation } = useUserLocation();
+    const [location, setLocation] = useState<string | null>(currentCity ?? userProfile?.city ?? null);
     
     // --- UI State ---
     const [showForm, setShowForm] = useState(false);
@@ -36,7 +39,7 @@ export const useDiscoverPage = () => {
     const [filterVisible, setFilterVisible] = useState(false);
 
     const emptyMessage =
-       loading ? "Loading..." 
+       loadingEvents ? "Loading..." 
             : !location ?
               "Fill in your city at your profile or activate your location to see local events 📍"
               : "No events in " + location + " yet  😕"
@@ -48,12 +51,21 @@ export const useDiscoverPage = () => {
         }
     }, [userProfile, fetchProfile])
 
+    useEffect(() => {
+        if (loadingLocation) return;
+
+        if (currentCity) {
+            setLocation(currentCity);
+        }
+    }, [currentCity])
+
     // Update location when profile changes
     useEffect(() => {
-        if (userProfile?.city) {
+        // If no location from other sources, use profile city
+        if (userProfile?.city && !currentCity) {
             setLocation(userProfile.city);
         }
-    }, [userProfile?.city])
+    }, [userProfile?.city, currentCity])
 
     // --- Helpers ---
     const closeFilter = () => {
@@ -113,7 +125,7 @@ export const useDiscoverPage = () => {
     };
 
     const handleLoadMore = () => {
-        if (!loading && hasMore) {
+        if (!loadingEvents && hasMore) {
             loadNextPage(fetchStrategy);
         }
     };
@@ -125,7 +137,10 @@ export const useDiscoverPage = () => {
 
     // Specific Pull-to-refresh logic
     const handleRefresh = async () => {
-        if (loading) return;
+       if (loadingEvents || loadingLocation) return;
+
+       // Refresh user location
+       await refreshLocation();
         
         refreshState(); // Resets page=1 and events=[]
         await loadNextPage(fetchStrategy); // Forces immediate load
@@ -135,7 +150,7 @@ export const useDiscoverPage = () => {
         // Data
         events,
         location,
-        loading,
+        loadingEvents,
         interestFilter,
         filterButtons,
         filterOptions,
