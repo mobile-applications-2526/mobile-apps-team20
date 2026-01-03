@@ -24,8 +24,9 @@ import { useUserChatsStore } from '@/store/chat/use_user_chats_store';
 
 export default function ConversationScreen() {
     const router = useRouter();
-    // Retrieve unseenCount from params
-    const { id, name, image, eventId } = useLocalSearchParams(); 
+    
+    // Retrieve unseenCount from params (snapshot at the moment of entry)
+    const { id, name, image, eventId, unseenCount } = useLocalSearchParams(); 
     
     const chatId = Array.isArray(id) ? id[0] : id;
     const chatTitle = Array.isArray(name) ? name[0] : name; 
@@ -37,7 +38,12 @@ export default function ConversationScreen() {
     const { resetUnseenMessagesCount } = useUserChatsStore();
     const { sendLastMessageSeen } = useChatStore();
 
-    const unseenMessagesCount = useUserChatsStore((state) => state.unSeenMessagesCount[chatId]);
+    // Use useRef to "freeze" the initial unseen count. 
+    const initialUnseenCount = useRef(Number(unseenCount) || 0);
+
+    // State to compensate if new messages arrive while inside.
+    // If 1 socket message arrives, the banner must shift down 1 position to stay above the correct message.
+    const [newMessagesOffset, setNewMessagesOffset] = useState(0);
 
     // Layout Hooks
     const insets = useSafeAreaInsets();
@@ -57,6 +63,7 @@ export default function ConversationScreen() {
         fetchHistory(chatId);
 
         return () => {
+            // Cleanup on exit 
             resetUnseenMessagesCount(chatId)
             clearChat();
         };
@@ -65,7 +72,9 @@ export default function ConversationScreen() {
     // Sync with Server when data is ready
     useEffect(() => {
         if (!isLoading && messages.length > 0) {
+            // Mark as seen on server and global store
             sendLastMessageSeen(chatId);
+            resetUnseenMessagesCount(chatId); 
         }
     }, [isLoading, messages.length, chatId]);
 
@@ -73,6 +82,11 @@ export default function ConversationScreen() {
     useEffect(() => {
         if (incomingMessage) {
             addMessage(incomingMessage);
+            // If a new message arrives while watching, increase offset
+            // so the banner visually "moves down" and doesn't jump to the new message.
+            setNewMessagesOffset(prev => prev + 1);
+            
+            sendLastMessageSeen(chatId);
         }
     }, [incomingMessage]);
 
@@ -111,7 +125,9 @@ export default function ConversationScreen() {
         const isLastInGroup = !newerMessage || newerMessage.senderName !== item.senderName;
         const isFirstInGroup = !olderMessage || olderMessage.senderName !== item.senderName || showDateHeader;
 
-        const showUnseenBanner = unseenMessagesCount! > 0 && index === unseenMessagesCount! - 1;
+        // Banner Logic
+        const currentBannerIndex = (initialUnseenCount.current + newMessagesOffset) - 1;
+        const showUnseenBanner = initialUnseenCount.current > 0 && index === currentBannerIndex;
 
         let timeString = "";
         try { timeString = format(currentMessageDate, 'HH:mm'); } catch (e) {}
@@ -149,7 +165,8 @@ export default function ConversationScreen() {
                     <View style={styles.unseenBannerContainer}>
                         <View style={styles.unseenBannerBox}>
                              <Text style={styles.unseenBannerText}>
-                                {unseenMessagesCount} unseen message{unseenMessagesCount > 1 ? "s" : ""}
+                                {/* Use .current to keep the number fixed */}
+                                {initialUnseenCount.current} unseen Messages
                              </Text>
                         </View>
                     </View>
@@ -197,7 +214,7 @@ export default function ConversationScreen() {
                 </View>
             </View>
         );
-    }, [reversedMessages, user]);
+    }, [reversedMessages, user, newMessagesOffset]); // Added newMessagesOffset to dependencies
 
     return (
         <View style={styles.container}>
