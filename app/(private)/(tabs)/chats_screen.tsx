@@ -27,7 +27,7 @@ export default function ChatsScreen() {
         fetchUserChats, 
         refreshUserChats,
         hasMore,
-        unSeenMessagesCount
+        unSeenMessagesCount // This Map updates independently of the 'chats' array
     } = useUserChatsStore();
 
     // Initialize socket listener for the list
@@ -41,11 +41,11 @@ export default function ChatsScreen() {
                 fetchUserChats(); 
             } 
             // Returning from background or navigating back from a chat
-            // Perform a silent refresh to catch up on any missed WebSocket events (e.g., connection drops)
+            // Perform a silent refresh to catch up on any missed WebSocket events
             else {
                 refreshUserChats(); 
             }
-        }, [chats.length]) // Dependency ensures we distinguish between initial fetch and refresh
+        }, [chats.length]) 
     );
 
     const openChat = (
@@ -81,6 +81,7 @@ export default function ChatsScreen() {
         const lastMessageUsername = isMe ? "You" : item.lastMessage?.senderName;
 
         // Calculate unseen count
+        // Ensure strictly matching types if needed, but Map usually handles string keys well if set correctly
         const count = unSeenMessagesCount.get(item.id) || 0;
         const hasUnseen = count > 0;
 
@@ -142,6 +143,9 @@ export default function ChatsScreen() {
                 ) : (
                     <FlatList
                         data={chats}
+                        // CRITICAL FIX: extraData ensures the list re-renders when the Map changes
+                        // even if the 'chats' array reference remains the same.
+                        extraData={unSeenMessagesCount} 
                         keyExtractor={(item: UserChatsView) => String(item.id)}
                         renderItem={renderItem}
                         contentContainerStyle={{ paddingVertical: 12 }}

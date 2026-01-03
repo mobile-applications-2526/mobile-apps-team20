@@ -50,24 +50,34 @@ export default function ConversationScreen() {
 
     useEffect(() => {
         clearChat();
+        
+        // Reset the local badge immediately
+        resetUnseenMessagesCount(chatId);
+
         fetchHistory(chatId);
 
         return () => {
-            // Send the last seen message when leaving the chat to the server
-            sendLastMessageSeen(chatId)
-            resetUnseenMessagesCount(chatId);
+            // ONLY clean internal UI state. 
+            // Do NOT put server calls (API) here to avoid race conditions.
+            clearChat();
         };
     }, [chatId]);
 
+    // Sync with Server when data is ready
     useEffect(() => {
-        // If messages are loaded (not loading) and there are messages, reset unseen count
+        // As soon as messages load, tell the server "I have seen this".
         if (!isLoading && messages.length > 0) {
+            sendLastMessageSeen(chatId);
+            // Ensure local store is 0
             resetUnseenMessagesCount(chatId);
         }
     }, [isLoading, messages.length, chatId]);
 
+    // Handle incoming messages while chat is open
     useEffect(() => {
-        if (incomingMessage) addMessage(incomingMessage);
+        if (incomingMessage) {
+            addMessage(incomingMessage);
+        }
     }, [incomingMessage]);
 
     const handleSendMessage = () => {
