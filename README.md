@@ -96,35 +96,7 @@ The backend API must be running for the app to function correctly.
    Note: Due to Google Authentication limitations, Expo Go is not supported. Please use an emulator or simulator to run the app.
 
 ---
-### Installation backend 
 
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Juangmz7/mobile-server.git
-   cd mobile-server
-### Environment Setup
-
-1. Create an environment configuration file from the template:
-   cp env.template .env
-
-2. Update the environment variables as needed (database credentials, authentication settings, etc.).
-
-### Database (PostgreSQL – Docker)
-
-1. Start the PostgreSQL container:
-   docker compose up -d
-
-2. Verify that the database container is running before starting the backend.
-
-### Running the Backend
-
-1. Start the Spring Boot server:
-   Windows: mvnw.cmd spring-boot:run
-   macOS/Linux: ./mvnw spring-boot:run
-   
----
 ## 🙌 Vision
 
 Our goal is to make student life more social, inclusive, and connected by lowering the barrier to meeting new people and discovering new experiences.
