@@ -24,7 +24,7 @@ export interface UserEventsStore {
   errorSubscribe: string | null;
 
   // Actions
-  createEvent: (data: EventRequestDTO) => Promise<void>;
+  createEvent: (data: FormData) => Promise<void>;
   deleteMyEvent: (id: string) => Promise<void>;
   subscribeToEvent: (eventId: string) => Promise<boolean>
   unSubscribeToEvent: (eventId: string, organizerName: string) => Promise<boolean>
@@ -45,7 +45,7 @@ export const useUserEventStore = create<UserEventsStore>((set, get) => ({
   errorDelete: null,
   errorSubscribe: null,
 
-  createEvent: async (data: EventRequestDTO) => {
+  createEvent: async (data: FormData) => {
     set({ loadingCreate: true, errorCreate: null });
     try {
       const newEvent = await get().eventRepository.createEvent(data);

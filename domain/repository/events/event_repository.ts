@@ -22,11 +22,11 @@ export interface EventRepository {
 
   getEventParticipants(eventId: string, page: number): Promise<EventParticipantListResult>;
 
-  createEvent(request: EventRequestDTO): Promise<EventItem>;
+  createEvent(request: FormData): Promise<EventItem>;
 
   subscribeToEvent(eventId: string): Promise<EventParticipant>;
 
-  updateEvent(eventId: string, request: EventRequestDTO): Promise<EventItem>;
+  updateEvent(eventId: string, request: FormData): Promise<EventItem>;
 
   deleteEvent(eventId: string): Promise<void>;
 

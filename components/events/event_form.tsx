@@ -4,14 +4,13 @@ import React, { useState } from "react";
 import { Alert, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
 import { InterestSelector } from "../shared/interest_selector";
-// 1. IMPORTAR EL MAPPER
 import { DateMapper } from "@/shared/utils/date_mapper";
 
 // Define the structure of the event form data
 export interface EventFormData {
   title: string;
   description: string;
-  image?: string;
+  image?: string; 
   interests?: InterestTag[];
   city: string;
   placeName: string;
@@ -68,7 +67,7 @@ export default function EventForm({
       {
         mediaType: "photo",
         quality: 0.8,
-        includeBase64: true,
+        includeBase64: false, // We need the URI for Multipart, not Base64
       },
       (response) => {
         if (response.didCancel) {
@@ -81,11 +80,10 @@ export default function EventForm({
         const asset = response.assets && response.assets[0];
         if (!asset) return;
 
-        // Store base64 in form.image so backend gets a string
-        if (asset.base64) {
-          setForm((prev) => ({ ...prev, image: asset.base64 || "" }));
-        }
+        // Logic to support MultipartFile
+        // We store the URI directly.
         if (asset.uri) {
+          setForm((prev) => ({ ...prev, image: asset.uri }));
           setImagePreviewUri(asset.uri);
         }
       }

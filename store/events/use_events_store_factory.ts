@@ -14,7 +14,7 @@ export interface EventsStore {
   repository: EventRepository
   
   // --- Granular Loading States ---
-  loading: boolean;
+  loadingEvents: boolean;
   
   // --- Granular Error States ---
   error: string | null;
@@ -30,7 +30,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
   events: [],
   currentPage: 0,
   hasMore: true,
-  loading: false,
+  loadingEvents: false,
   error: null,
   actualFilter: FilterTag.Location,
   repository: container.eventRepository,
@@ -42,25 +42,25 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     const state = get();
 
     // Avoid fetch more time while loading & when there are no more events
-    if (state.loading || !state.hasMore) return;
+    if (state.loadingEvents || !state.hasMore) return;
 
     const actualPage = state.currentPage
 
     // Set loading/error specific to this action
-    set({ loading: true, error: null });
+    set({ loadingEvents: true, error: null });
     try {
       const callback = await fetchCallback(state.repository, actualPage);
 
       set({
         events: [...state.events, ...callback.events],
-        loading: false,
+        loadingEvents: false,
         currentPage: actualPage + 1,
         hasMore: callback.hasMore,
       });
     } catch (err: unknown) {
       set({
         error: getErrorMessage(err),
-        loading: false,
+        loadingEvents: false,
         hasMore: false
       });
     }
@@ -71,7 +71,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
       events: [],
       currentPage: 0,
       hasMore: true,
-      loading: false,
+      loadingEvents: false,
       error: null
     });
   },

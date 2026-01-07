@@ -8,10 +8,14 @@ import { EventItem } from "@/domain/model/entities/events/event_item";
 interface EventDetailListHeaderProps {
   event: EventItem | null;
   onOrganiserPress: (userId: string) => void;
+  isMe: (username: string) => boolean;
 }
 
-export const EventDetailListHeader = ({ event, onOrganiserPress }: EventDetailListHeaderProps) => {
+export const EventDetailListHeader = ({ event, onOrganiserPress, isMe }: EventDetailListHeaderProps) => {
   if (!event) return null;
+
+  const organiserName = isMe(event.organiser.profile.name) 
+                          ? "You" : event.organiser.profile.name;
 
   return (
     <View>
@@ -35,9 +39,9 @@ export const EventDetailListHeader = ({ event, onOrganiserPress }: EventDetailLi
         <Text style={styles.sectionTitle}>Organiser</Text>
         <ParticipantCard
           key={event.organiser.id}
-          participantName={event.organiser.profile.name}
+          participantName={organiserName}
           participantImage={event.organiser.profile.profileImage ?? ""}
-          onPress={() => onOrganiserPress(event.organiser.id)}
+          onPress={() => onOrganiserPress(event.organiser.profile.id)}
         />
 
         <View style={styles.divider} />

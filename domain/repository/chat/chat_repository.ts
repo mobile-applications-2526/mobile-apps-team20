@@ -4,4 +4,5 @@ import { UserChatListResult } from "@/domain/model/dto/chat/user_chat_list_resul
 export interface ChatRepository {
     getMessages(chatId: string, page: number): Promise<ChatListResult>;
     getUserChats(page: number): Promise<UserChatListResult>;
+    markAsRead(chatId: string, messageId: string): Promise<void>;
 }

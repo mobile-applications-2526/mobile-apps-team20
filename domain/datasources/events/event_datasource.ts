@@ -29,13 +29,13 @@ export interface EventDataSource {
   getEventsByLocationAndTags(city: string, tags: InterestTag[], page: number): Promise<EventListRestult>;
 
   /** POST /api/events (auth) */
-  createEvent(request: EventRequestDTO): Promise<EventItem>;
+  createEvent(request: FormData): Promise<EventItem>;
 
   /** POST /api/events/participants/{participantId} (auth) */
   subscribeToEvent(eventId: string): Promise<EventParticipant>;
 
   /** PUT /api/events/{eventId} (auth) */
-  updateEvent(eventId: string, request: EventRequestDTO): Promise<EventItem>;
+  updateEvent(eventId: string, request: FormData): Promise<EventItem>;
 
   /** DELETE /api/events/{eventId} (auth) */
   deleteEvent(eventId: string): Promise<void>;

@@ -1,3 +1,4 @@
+import { UserProfileUpdateRequest } from "@/domain/model/dto/user/user_profile_update_request";
 import { InterestTag } from "@/domain/model/enums/interest_tag";
 import { useUserAuthStore } from "@/store/auth/use_auth_store";
 import { useUserProfileStore } from "@/store/user/use_user_profile_store";
@@ -7,11 +8,20 @@ export const useProfilePage = () => {
   const user = useUserAuthStore((state) => state.user);
   const logout = useUserAuthStore((state) => state.logout);
 
-  const { profile, isLoading, error, fetchProfile, updateProfile, clearProfile } =
-    useUserProfileStore();
+  const {
+    profile,
+    isLoading,
+    error,
+    fetchProfile,
+    updateProfile,
+    clearStore,
+    clearPublicProfile,
+  } = useUserProfileStore();
 
   // Track which username the current profile belongs to
-  const [lastProfileOwner, setLastProfileOwner] = useState<string | null>(null);
+  const [lastProfileOwner, setLastProfileOwner] = useState<string | null>(
+    null
+  );
 
   const usernameKey = user?.username || user?.email || null;
 
@@ -21,10 +31,10 @@ export const useProfilePage = () => {
     // When the logged-in user changes, clear any previous profile and fetch a new one
     if (lastProfileOwner !== usernameKey) {
       setLastProfileOwner(usernameKey);
-      clearProfile();
+      clearPublicProfile();
       fetchProfile();
     }
-  }, [usernameKey, lastProfileOwner, clearProfile, fetchProfile]);
+  }, [usernameKey, lastProfileOwner, clearPublicProfile, fetchProfile]);
 
   const displayName =
     profile?.name || user?.username || user?.email || "Your Name";
@@ -41,7 +51,7 @@ export const useProfilePage = () => {
   const interests =
     profile?.interests && profile.interests.length > 0
       ? profile.interests
-      : ["Add your interests"]; 
+      : ["Add your interests"];
 
   const languagesText =
     profile && profile.languages.length > 0
@@ -77,6 +87,9 @@ export const useProfilePage = () => {
   );
   const [editBio, setEditBio] = useState(profile?.bio ?? "");
 
+  // Local URI for a newly selected profile image (for upload)
+  const [profileImageUri, setProfileImageUri] = useState<string | null>(null);
+
   useEffect(() => {
     if (profile) {
       setEditUserName(profile.name ?? "");
@@ -96,6 +109,20 @@ export const useProfilePage = () => {
 
   const handleCloseEdit = () => {
     setIsEditOpen(false);
+    // Discard any unsaved image selection when closing the editor
+    setProfileImageUri(null);
+
+    // Optionally reset form fields back to the last saved profile
+    if (profile) {
+      setEditUserName(profile.name ?? "");
+      setEditNationality(profile.nationality ?? []);
+      setEditLanguages(profile.languages ?? []);
+      setEditAge(profile.age ? String(profile.age) : "");
+      setEditCity(profile.city ?? "");
+      setEditCountry(profile.country ?? "");
+      setEditInterests(profile.interests.join(", ") ?? "");
+      setEditBio(profile.bio ?? "");
+    }
   };
 
   const handleSubmitEdit = async () => {
@@ -113,7 +140,7 @@ export const useProfilePage = () => {
 
     const ageNumber = Number(editAge) || 0;
 
-    await updateProfile({
+    const payload: UserProfileUpdateRequest = {
       userName: safeUserName,
       nationality: nationalityString,
       languages,
@@ -122,13 +149,41 @@ export const useProfilePage = () => {
       bio: editBio,
       userLocation: { city: editCity, country: editCountry },
       profilePicture: null,
-    });
+    };
 
+    // Always send multipart/form-data as required by the backend:
+    // - part "data": JSON UserProfileRequest
+    // - optional part "image": binary file
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(payload));
+
+    if (profileImageUri) {
+      const uri = profileImageUri;
+      const filename = uri.split("/").pop() || "profile.jpg";
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : "image/jpeg";
+
+      formData.append("image", {
+        uri,
+        name: filename,
+        type,
+      } as any);
+    }
+
+    await updateProfile(formData);
+
+    // Clear the local selection after a successful save so that
+    // reopening the editor shows "+ Add picture" until a new
+    // image is chosen.
+    setProfileImageUri(null);
     setIsEditOpen(false);
   };
 
   const handleLogout = async () => {
     await logout();
+    // Also reset any locally selected profile image on logout
+    setProfileImageUri(null);
+    clearStore();
   };
 
   return {
@@ -149,6 +204,7 @@ export const useProfilePage = () => {
     editCountry,
     editInterests,
     editBio,
+    profileImageUri,
     setEditUserName,
     setEditNationality,
     setEditLanguages,
@@ -156,7 +212,8 @@ export const useProfilePage = () => {
     setEditCity,
     setEditCountry,
     setEditInterests,
-     setEditBio,
+    setEditBio,
+    setProfileImageUri,
     handleCloseEdit,
     handleSubmitEdit,
     languagesText,
@@ -166,4 +223,3 @@ export const useProfilePage = () => {
     handleLogout,
   };
 };
-

@@ -18,7 +18,6 @@ const toLocalISOString = (isoString: string): string => {
 };
 
 export const mapEventToFrontend = (dto: EventResponseDTO): EventItem => {
-    // ... (tu código existente aquí, sin cambios) ...
     let organiserMapped: EventOrganiser;
 
     if (dto.organiser) {
@@ -53,7 +52,7 @@ export const mapEventFormToDTO = (formData: EventFormData): EventRequestDTO => {
         name: formData.title.trim(),
         eventBio: {
             description: formData.description.trim(),
-            image: formData.image?.trim() ? formData.image.trim() : null,
+            image: null,
             interestTags: formData.interests ?? [],
         },
         location: {

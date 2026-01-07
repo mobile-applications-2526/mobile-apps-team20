@@ -16,7 +16,7 @@ import { useDiscoverPage } from "@/hooks/events/use_discover_page";
 export default function DiscoverPage() {
   const {
     events,
-    loading,
+    loadingEvents,
     emptyMessage,
     interestFilter,
     filterButtons,
@@ -63,7 +63,7 @@ export default function DiscoverPage() {
         emptyComponentLabel={emptyMessage}
         contentContainerStyle={{ paddingTop: 0 }}
         onLoadMore={handleLoadMore}
-        isLoadingMore={loading}
+        isLoadingMore={loadingEvents}
         handleRefresh={handleRefresh}
       />
 

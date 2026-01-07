@@ -105,9 +105,11 @@ export const useEventDetailPage = () => {
     };
     
     const handleProfileNavigation = (userId: string) => {
-        console.log("Navigate to profile:", userId);
-    };
-
+        router.push({
+            pathname: "/(private)/user/[id]",
+            params: { id: userId },
+        });
+    }
     const handleGoToChatListScreen = () => {
         router.push("/(private)/(tabs)/chats_screen")
     };
@@ -131,6 +133,7 @@ export const useEventDetailPage = () => {
         loadingSubscription,
         isJoined, 
         isOrganiser: user?.username === event?.organiser.profile.name,
+        isMe: (username: string) => user?.username === username,
         
         // UI Helpers
         insets,

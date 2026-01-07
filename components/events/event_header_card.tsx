@@ -6,7 +6,7 @@ type EventHeaderCardProps = {
   event: {
     title: string;
     description: string;
-    eventImage?: string
+    image?: string
   };
   startDate: string
   endDate: string
@@ -28,9 +28,9 @@ export default function EventHeaderCard({
     <View style={[styles.card, styles.headerCard]}>
       
       {/* Logic for Image or Light Gray Placeholder */}
-      {event.eventImage ? (
+      {event.image ? (
         <Image 
-          source={{ uri: event.eventImage }} 
+          source={{ uri: event.image }} 
           style={styles.roundImage} 
         />
       ) : (

@@ -16,4 +16,8 @@ export class ChatRepositoryImpl implements ChatRepository {
     async getMessages(chatId: string, page: number): Promise<ChatListResult> {
         return await this.datasource.getMessages(chatId, page);
     }
+
+    async markAsRead(chatId: string, messageId: string): Promise<void> {
+        await this.datasource.markAsRead(chatId, messageId);
+    }
 }

@@ -6,7 +6,6 @@ import { InterestTag } from "@/domain/model/enums/interest_tag";
 import type { ApiService } from "@/domain/services/api_service";
 import { EventResponseDTO } from "@/domain/model/dto/events/event_response_dto";
 import { EventParticipantResponseDTO } from "@/domain/model/dto/events/event_participant_response_dto";
-import { EventRequestDTO } from "@/domain/model/dto/events/event_request_dto";
 import { mapEventToFrontend } from "../../mappers/event_mapper";
 import { EventParticipant } from "@/domain/model/entities/events/event_participant";
 import { mapParticipantToFrontend } from "../../mappers/event_participant_mapper";
@@ -52,7 +51,6 @@ export class EventDataSourceImpl implements EventDataSource {
   
   /** GET /api/events/by-date?eventDate=2025-10-15T00:00:00 */
   async getEventsByDateAscending(eventDateISO: string, page: number): Promise<EventListRestult> {
-    console.log("Fetching events for date:", eventDateISO, "page:", page);
     const response = await this.api.get<PaginatedResponse<EventResponseDTO>>(`/events/by-date`, {
       eventDate: eventDateISO,
       page: page,
@@ -86,7 +84,6 @@ export class EventDataSourceImpl implements EventDataSource {
   }
 
   async getEventsByDateAndTags(eventDateISO: string, tags: InterestTag[], page: number): Promise<EventListRestult> {
-        console.log("Fetching events for date:", eventDateISO, "page:", page);
     const response = await this.api.get<PaginatedResponse<EventResponseDTO>>(`/events/by-date-and-interests`, {
       eventDate: eventDateISO,
       tags: tags,
@@ -107,8 +104,7 @@ export class EventDataSourceImpl implements EventDataSource {
   }
   
   /** POST /api/events (auth) */
-  async createEvent(request: EventRequestDTO): Promise<EventItem> {
-    console.log("Creating event with request:", JSON.stringify(request));
+  async createEvent(request: FormData): Promise<EventItem> {        
     const response = await this.api.post<EventResponseDTO>(`/events`, request);
     return mapEventToFrontend(response);
   }
@@ -124,7 +120,7 @@ export class EventDataSourceImpl implements EventDataSource {
   }
 
   /** PUT /api/events/{eventId} (auth) */
-  async updateEvent(eventId: string, request: EventRequestDTO): Promise<EventItem> {
+  async updateEvent(eventId: string, request: FormData): Promise<EventItem> {
     const response = await this.api.put<EventResponseDTO>(`/events/${eventId}`, request, true);
     return mapEventToFrontend(response);
   }

@@ -1,6 +1,9 @@
+import { countries } from "countries-list";
+import ISO6391 from "iso-639-1";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   BackHandler,
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -11,18 +14,20 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { countries } from "countries-list";
-import ISO6391 from "iso-639-1";
 
 // Custom Hooks
 import { useProfilePage } from "@/hooks/user/use_profile_page";
 
 // Components
-import { Section } from "@/components/shared/section"; // Adjust path
 import { InterestSelector } from "@/components/shared/interest_selector";
+import { Section } from "@/components/shared/section"; // Adjust path
+import { File } from "lucide-react-native";
+import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 
 export default function ProfileScreen() {
   const {
+    user,
+    profile,
     displayName,
     subtitle,
     interests,
@@ -36,6 +41,7 @@ export default function ProfileScreen() {
     editCountry,
     editInterests,
     editBio,
+    profileImageUri,
     setEditUserName,
     setEditNationality,
     setEditLanguages,
@@ -44,6 +50,7 @@ export default function ProfileScreen() {
     setEditCountry,
     setEditInterests, // This updates the string in the store/hook
     setEditBio,
+    setProfileImageUri,
     handleCloseEdit,
     handleSubmitEdit,
     languagesText,
@@ -54,9 +61,55 @@ export default function ProfileScreen() {
   } = useProfilePage();
 
   const initial = displayName.charAt(0).toUpperCase();
+  const remoteProfileImage = profile?.profileImage ?? null;
+  // Main avatar should always reflect the last saved image from backend
+  const avatarUri = remoteProfileImage;
+  // Preview inside the edit modal only shows a newly selected (unsaved) image
+  const previewUri = profileImageUri;
 
   const [isLanguagePickerOpen, setIsLanguagePickerOpen] = useState(false);
   const [isNationalityPickerOpen, setIsNationalityPickerOpen] = useState(false);
+
+  const handlePickProfileImage = () => {
+    launchImageLibrary(
+      {
+        mediaType: "photo",
+        quality: 0.8,
+        includeBase64: false,
+      },
+      (response) => {
+        if (response.didCancel) return;
+        if (response.errorCode) {
+          // Simple silent fail; could be improved with a toast
+          console.warn("Profile image pick error", response.errorMessage);
+          return;
+        }
+        const asset = response.assets && response.assets[0];
+        if (!asset?.uri) return;
+        setProfileImageUri(asset.uri);
+      }
+    );
+  };
+
+  const handleTakeProfilePhoto = () => {
+    launchCamera(
+      {
+        mediaType: "photo",
+        quality: 0.8,
+        includeBase64: false,
+      },
+      (response) => {
+        if (response.didCancel) return;
+        if (response.errorCode) {
+          console.warn("Profile camera error", response.errorMessage);
+          return;
+        }
+        const asset = response.assets && response.assets[0];
+        if (!asset?.uri) return;
+        setProfileImageUri(asset.uri);
+      }
+    );
+  };
 
   // Handle hardware back button on Android when modal is open
   useEffect(() => {
@@ -97,9 +150,13 @@ export default function ProfileScreen() {
     <View style={styles.screenContainer}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.avatarWrapper}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initial}</Text>
-          </View>
+          {avatarUri ? (
+            <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+          ) : (
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initial}</Text>
+            </View>
+          )}
         </View>
 
         <Text style={styles.name}>{displayName}</Text>
@@ -163,6 +220,33 @@ export default function ProfileScreen() {
               keyboardShouldPersistTaps="handled"
               scrollEnabled={!isLanguagePickerOpen && !isNationalityPickerOpen}
             >
+              <Text style={styles.fieldLabel}>Profile picture</Text>
+              <View style={styles.profileImageRow}>
+                <TouchableOpacity
+                  style={styles.imagePicker}
+                  onPress={handlePickProfileImage}
+                >
+                  {previewUri ? (
+                    <Image
+                      source={{ uri: previewUri }}
+                      style={styles.profileImagePreview}
+                    />
+                  ) : (
+                    <View style={styles.imagePickerContent}>
+                      <File size={18} color="#9ca3af" style={{ marginRight: 8 }} />
+                      <Text style={styles.imagePickerText}>Choose from files</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.cameraButton}
+                  onPress={handleTakeProfilePhoto}
+                >
+                  <Text style={styles.cameraButtonText}>Take a picture</Text>
+                </TouchableOpacity>
+              </View>
+
               <Text style={styles.fieldLabel}>Username</Text>
               <TextInput
                 style={styles.input}
@@ -388,6 +472,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  avatarImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+  },
   avatar: {
     width: 96,
     height: 96,
@@ -483,6 +572,48 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginBottom: 10,
     minHeight: 80,
+  },
+  profileImageRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  imagePickerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  imagePicker: {
+    flex: 1,
+    height: 140,
+    borderRadius: 12,
+    backgroundColor: "#f3f4f6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+    overflow: "hidden",
+  },
+  imagePickerText: {
+    color: "#9ca3af",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  profileImagePreview: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  cameraButton: {
+    flex: 1,
+    height: 140,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#0066cc",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cameraButtonText: {
+    color: "#0066cc",
+    fontWeight: "600",
   },
   editScroll: {
     flex: 1,

@@ -19,16 +19,23 @@ export class ChatDatasourceImpl implements ChatDatasource {
 
     private chatMessagesFromPaginatedResponse(response: PaginatedResponse<ChatMessage>): ChatListResult {
         return {
-          messages: response.content,
-          hasMore: !response.last
+            messages: response.content,
+            hasMore: !response.last
+        };
+    }
+    
+    private userChatsFromPaginatedResponse(response: PaginatedResponse<UserChatsView>): UserChatListResult {
+        return {
+            chats: response.content,
+            hasMore: !response.last 
         };
     }
 
-    private userChatsFromPaginatedResponse(response: PaginatedResponse<UserChatsView>): UserChatListResult {
-        return {
-          chats: response.content,
-          hasMore: !response.last 
-        };
+    async markAsRead(chatId: string, messageId: string): Promise<void> {
+        const endpoint = `/chat/${chatId}/mark-read`;
+        await this.apiService.post<void>(endpoint, {
+            messageId: messageId
+        });
     }
 
     async getMessages(chatId: string, page: number): Promise<ChatListResult> {

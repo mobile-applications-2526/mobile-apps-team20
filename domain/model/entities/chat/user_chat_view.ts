@@ -6,4 +6,5 @@ export interface UserChatsView {
     eventName: string
     lastMessage?: ChatMessage
     eventImage?: string
+    unseenMessagesCount: number
 }

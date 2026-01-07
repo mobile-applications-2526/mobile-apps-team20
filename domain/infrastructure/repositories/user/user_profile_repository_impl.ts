@@ -4,14 +4,22 @@ import { UserProfile } from "@/domain/model/entities/events/user_profile";
 import { UserProfileRepository } from "@/domain/repository/user/user_profile_repository";
 
 export class UserProfileRepositoryImpl implements UserProfileRepository {
+
   constructor(private readonly dataSource: UserProfileDataSource) {}
 
   async getMyProfile(): Promise<UserProfile> {
     return this.dataSource.getMyProfile();
   }
 
-  async updateMyProfile(userProfileId: string, payload: UserProfileUpdateRequest): Promise<UserProfile> {
+  async updateMyProfile(
+    userProfileId: string,
+    payload: FormData | UserProfileUpdateRequest
+  ): Promise<UserProfile> {
     return this.dataSource.updateMyProfile(userProfileId, payload);
+  }
+
+  fetchUserById(id: string): Promise<UserProfile> {
+    return this.dataSource.getUserById(id);
   }
 }
 

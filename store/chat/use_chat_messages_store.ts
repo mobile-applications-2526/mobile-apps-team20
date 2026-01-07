@@ -23,6 +23,7 @@ interface ChatState {
     
     // Async Action for fetching data
     fetchHistory: (chatId: string) => Promise<void>;
+    sendLastMessageSeen: (chatId: string) => Promise<void>;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -91,5 +92,23 @@ export const useChatStore = create<ChatState>((set, get) => ({
         } finally {
             set({ isLoading: false });
         }
-    }
+    },
+
+    sendLastMessageSeen: async (chatId) => {
+        const { messages } = get();
+
+        if (!messages || messages.length === 0) return;
+
+        // Get the most recent message (the last one in the array)
+        const lastMessage = messages[messages.length - 1];
+
+        try {
+            await container.chatRepository.markAsRead(chatId, lastMessage.id);
+        } catch (error) {
+            // Fail silently or log (background operation)
+            set({
+                error: getErrorMessage(error)
+            }) 
+        }
+    },
 }));

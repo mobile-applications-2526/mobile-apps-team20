@@ -42,15 +42,15 @@ export default function EventCard({
       <View style={styles.cardContent}>
         
         {/* --- Image Section --- */}
-        <View style={styles.imageContainer}>
-          {event.image ? (
-            <Image 
-              source={{ uri: event.image }} 
-              style={styles.image} 
-              resizeMode="cover" 
-            />
-          ) : (
-            <View style={styles.placeholder}>
+          <View style={styles.imageContainer}>
+            {event.image ? (
+              <Image 
+                source={{ uri: event.image }} 
+                style={styles.image} 
+                resizeMode="cover" 
+              />
+            ) : (
+              <View style={styles.placeholder}>
                {/* Letter instead of Icon */}
                <Text style={styles.placeholderText}>
                  {event.title ? event.title.charAt(0).toUpperCase() : "?"}
@@ -81,7 +81,7 @@ export default function EventCard({
           <View style={styles.infoRow}>
             <MapPin size={16} color="#6B7280" style={styles.icon} />
             <Text style={styles.infoText} numberOfLines={1}>
-              {event.placeName}
+              {event.placeName}, {event.city}
             </Text>
           </View>
         </View>

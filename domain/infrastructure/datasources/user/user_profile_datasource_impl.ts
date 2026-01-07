@@ -27,6 +27,7 @@ export class UserProfileDataSourceImpl implements UserProfileDataSource {
       const dto = await this.api.get<UserProfileResponseDTO>(
         `/user/username/${username}`
       );
+      console.log("PROFILE_DTO", username, dto);
       return mapProfileToFrontend(dto);
     } catch (error: unknown) {
       const axiosError = error as AxiosError;
@@ -35,6 +36,9 @@ export class UserProfileDataSourceImpl implements UserProfileDataSource {
       // If the backend returns 404, it means the user has no profile yet.
       // Return an empty profile so the UI can render placeholders instead of failing.
       if (status === 404) {
+        console.log(
+          `No profile found for username: ${username}, returning empty profile.`
+        );
         const emptyProfile: UserProfile = {
           id: "no-profile-id",
           name: username,
@@ -55,13 +59,25 @@ export class UserProfileDataSourceImpl implements UserProfileDataSource {
     }
   }
 
-  async updateMyProfile(userProfileId: string, payload: UserProfileUpdateRequest): Promise<UserProfile> {
+  async updateMyProfile(
+    userProfileId: string,
+    payload: FormData | UserProfileUpdateRequest
+  ): Promise<UserProfile> {
     const dto = await this.api.put<UserProfileResponseDTO>(
       `/user/${userProfileId}`,
       payload,
       true
     );
     return mapProfileToFrontend(dto);
+  }
+
+  async getUserById(id: string): Promise<UserProfile> {
+    const response = await this.api.get<UserProfileResponseDTO>(
+      `/user/${id}`,
+      {},
+      true
+    );
+    return mapProfileToFrontend(response);
   }
 }
 

@@ -57,7 +57,7 @@ export class EventRepositoryImpl implements EventRepository {
   }
 
   /** Create a new event (requires authentication) */
-  async createEvent(request: EventRequestDTO): Promise<EventItem> {
+  async createEvent(request: FormData): Promise<EventItem> {
     return this.dataSource.createEvent(request);
   }
 
@@ -67,7 +67,7 @@ export class EventRepositoryImpl implements EventRepository {
   }
 
   /** Update an existing event (requires authentication) */
-  async updateEvent(eventId: string, request: EventRequestDTO): Promise<EventItem> {
+  async updateEvent(eventId: string, request: FormData): Promise<EventItem> {
     return this.dataSource.updateEvent(eventId, request);
   }
 

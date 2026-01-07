@@ -1,9 +1,14 @@
+import { processImage, processProfileImage } from '@/domain/infrastructure/mappers/user_profile_mapper';
 import { ChatMessage } from '@/domain/model/entities/chat/chat_message';
 import { useChatMessageSocket } from '@/hooks/chat/use_chat_messages_socket';
 import { useUserAuthStore } from '@/store/auth/use_auth_store';
 import { useChatStore } from '@/store/chat/use_chat_messages_store';
-import { useLocalSearchParams, useRouter } from 'expo-router'; 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useUserChatsStore } from '@/store/chat/use_user_chats_store';
+import { useUserProfileStore } from '@/store/user/use_user_profile_store';
+import { Ionicons } from '@expo/vector-icons';
+import { format, isSameDay, isToday, isYesterday, parseISO } from 'date-fns';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
@@ -17,18 +22,30 @@ import {
     View
 } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { format, parseISO, isSameDay, isToday, isYesterday } from 'date-fns';
-import { Ionicons } from '@expo/vector-icons';
 
 export default function ConversationScreen() {
     const router = useRouter();
-    const { id, name, image, eventId } = useLocalSearchParams(); 
+    
+    // Retrieve unseenCount from params (snapshot at the moment of entry)
+    const { id, name, image, eventId, unseenCount } = useLocalSearchParams(); 
     
     const chatId = Array.isArray(id) ? id[0] : id;
     const chatTitle = Array.isArray(name) ? name[0] : name; 
     const chatImage = Array.isArray(image) ? image[0] : (image ?? ""); 
+    const eventChatImage = processImage(chatImage)
     const eventChatId = Array.isArray(eventId) ? eventId[0] : (eventId); 
     const user = useUserAuthStore((state) => state.user);
+    const myProfile = useUserProfileStore((s) => s.profile);
+
+    const { resetUnseenMessagesCount } = useUserChatsStore();
+    const { sendLastMessageSeen } = useChatStore();
+
+    // Use useRef to "freeze" the initial unseen count. 
+    const initialUnseenCount = useRef(Number(unseenCount) || 0);
+
+    // State to compensate if new messages arrive while inside.
+    // If 1 socket message arrives, the banner must shift down 1 position to stay above the correct message.
+    const [newMessagesOffset, setNewMessagesOffset] = useState(0);
 
     // Layout Hooks
     const insets = useSafeAreaInsets();
@@ -44,11 +61,35 @@ export default function ConversationScreen() {
 
     useEffect(() => {
         clearChat();
+
         fetchHistory(chatId);
+
+        return () => {
+            // Cleanup on exit 
+            resetUnseenMessagesCount(chatId)
+            clearChat();
+        };
     }, [chatId]);
 
+    // Sync with Server when data is ready
     useEffect(() => {
-        if (incomingMessage) addMessage(incomingMessage);
+        if (!isLoading && messages.length > 0) {
+            // Mark as seen on server and global store
+            sendLastMessageSeen(chatId);
+            resetUnseenMessagesCount(chatId); 
+        }
+    }, [isLoading, messages.length, chatId]);
+
+    // Handle incoming messages while chat is open
+    useEffect(() => {
+        if (incomingMessage) {
+            addMessage(incomingMessage);
+            // If a new message arrives while watching, increase offset
+            // so the banner visually "moves down" and doesn't jump to the new message.
+            setNewMessagesOffset(prev => prev + 1);
+            
+            sendLastMessageSeen(chatId);
+        }
     }, [incomingMessage]);
 
     const handleSendMessage = () => {
@@ -75,7 +116,17 @@ export default function ConversationScreen() {
     };
 
     const renderMessage = useCallback(({ item, index }: { item: ChatMessage, index: number }) => {
+        
         const isMe = item.senderName === user!.username;
+
+        // Prefer the logged-in user's saved profile image for "me",
+        // otherwise fall back to whatever the backend sends for other users.
+        let userPictureUri: string | null = null;
+        if (isMe && myProfile?.profileImage) {
+            userPictureUri = myProfile.profileImage;
+        } else if (item.senderProfilePicture) {
+            userPictureUri = processProfileImage(item.senderProfilePicture);
+        }
         const currentMessageDate = parseISO(item.sentAt);
         
         const olderMessage = reversedMessages[index + 1];
@@ -85,14 +136,18 @@ export default function ConversationScreen() {
         const isLastInGroup = !newerMessage || newerMessage.senderName !== item.senderName;
         const isFirstInGroup = !olderMessage || olderMessage.senderName !== item.senderName || showDateHeader;
 
+        // Banner Logic
+        const currentBannerIndex = (initialUnseenCount.current + newMessagesOffset) - 1;
+        const showUnseenBanner = initialUnseenCount.current > 0 && index === currentBannerIndex;
+
         let timeString = "";
         try { timeString = format(currentMessageDate, 'HH:mm'); } catch (e) {}
 
         const renderAvatar = () => {
-            if (item.senderProfilePictureUrl) {
+            if (userPictureUri) {
                 return (
                     <Image 
-                        source={{ uri: item.senderProfilePictureUrl }} 
+                        source={{ uri: userPictureUri }} 
                         style={styles.avatar}
                     />
                 );
@@ -113,6 +168,18 @@ export default function ConversationScreen() {
                         <Text style={styles.dateHeaderText}>
                             {getDateLabel(item.sentAt)}
                         </Text>
+                    </View>
+                )}
+
+                {/* The Unseen Messages Banner */}
+                {showUnseenBanner && (
+                    <View style={styles.unseenBannerContainer}>
+                        <View style={styles.unseenBannerBox}>
+                             <Text style={styles.unseenBannerText}>
+                                {/* Use .current to keep the number fixed */}
+                                {initialUnseenCount.current} unseen Messages
+                             </Text>
+                        </View>
                     </View>
                 )}
 
@@ -158,7 +225,7 @@ export default function ConversationScreen() {
                 </View>
             </View>
         );
-    }, [reversedMessages, user]);
+    }, [reversedMessages, user, myProfile, newMessagesOffset]); // Added newMessagesOffset to dependencies
 
     return (
         <View style={styles.container}>
@@ -178,8 +245,8 @@ export default function ConversationScreen() {
                         activeOpacity={0.7}
                     >
                         {/* Event Image or Fallback Letter */}
-                        {chatImage !== "" ? (
-                            <Image source={{ uri: chatImage }} style={styles.headerImage} />
+                        {eventChatImage ? (
+                            <Image source={{ uri: eventChatImage }} style={styles.headerImage} />
                         ) : (
                             <View style={[styles.headerImage, styles.headerImageFallback]}>
                                 <Text style={styles.headerFallbackText}>
@@ -336,6 +403,30 @@ const styles = StyleSheet.create({
         color: '#8E8E8E',
         fontSize: 12,
         fontWeight: '500',
+    },
+
+    // --- UNSEEN BANNER (New Styles) ---
+    unseenBannerContainer: {
+        alignItems: 'center',
+        marginVertical: 12,
+        width: '100%',
+        justifyContent: 'center',
+    },
+    unseenBannerBox: {
+        backgroundColor: '#E3F2FD', // Very light blue
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 1,
+        elevation: 1,
+    },
+    unseenBannerText: {
+        color: '#1976D2', // Darker blue text
+        fontSize: 12,
+        fontWeight: '600',
     },
 
     // --- ROWS ---

@@ -120,7 +120,6 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
       }
     } catch (error) {
 
-      console.error("Error initializing session:", error);
       set({ authStatus: AuthStatus.NOT_AUTHENTICATED });
 
       state.clearUser()
