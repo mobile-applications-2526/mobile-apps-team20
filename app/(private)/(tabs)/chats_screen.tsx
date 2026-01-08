@@ -27,7 +27,7 @@ export default function ChatsScreen() {
         fetchUserChats, 
         refreshUserChats,
         hasMore,
-        unSeenMessagesCount // This is now a Record<string, number>
+        unSeenMessagesCount 
     } = useUserChatsStore();
 
     // Initialize socket listener for the list
@@ -36,12 +36,8 @@ export default function ChatsScreen() {
     // Reload list logic
     useFocusEffect(
         useCallback(() => {
-            if (chats.length === 0) {
-                fetchUserChats(); 
-            } else {
-                refreshUserChats(); 
-            }
-        }, [chats.length]) 
+            refreshUserChats();
+        }, []) // Dependencies removed to ensure it runs on focus events correctly
     );
 
     const openChat = (
@@ -49,7 +45,7 @@ export default function ChatsScreen() {
         eventName: string,
         eventId: string,
         eventImage?: string,
-        currentUnseenCount?: number // Added param to pass count to next screen
+        currentUnseenCount?: number 
     ) => {
         router.push({
             pathname: "/(private)/chat/[id]",
@@ -58,7 +54,7 @@ export default function ChatsScreen() {
                 name: eventName,
                 image: eventImage,
                 eventId: eventId,
-                unseenCount: currentUnseenCount // Pass it here
+                unseenCount: currentUnseenCount 
             },
         });
     };
@@ -78,9 +74,6 @@ export default function ChatsScreen() {
         const isMe = item.lastMessage?.senderName === user?.username;
         const lastMessageUsername = isMe ? "You" : item.lastMessage?.senderName;
 
-        // LOGIC FIX:
-        // Access the store Record using the ID. 
-        // If undefined (not tracked in store yet), fallback to item's initial count.
         const storeCount = unSeenMessagesCount[item.id];
         const count = storeCount !== undefined ? storeCount : item.unseenMessagesCount;
         
@@ -93,7 +86,7 @@ export default function ChatsScreen() {
                     item.eventName, 
                     item.eventId, 
                     item.eventImage,
-                    count // Pass the calculated count
+                    count 
                 )
             }>
                 {imageUri ? (
@@ -146,13 +139,11 @@ export default function ChatsScreen() {
                 ) : (
                     <FlatList
                         data={chats}
-                        // This works correctly with Record (object) now
                         extraData={unSeenMessagesCount} 
                         keyExtractor={(item: UserChatsView) => String(item.id)}
                         renderItem={renderItem}
                         contentContainerStyle={{ paddingVertical: 12 }}
                         onEndReached={() => {
-                            if (chats.length === 0) return;
                             if (chats.length > 0 && hasMore && !isLoading) {
                                 fetchUserChats();
                             }

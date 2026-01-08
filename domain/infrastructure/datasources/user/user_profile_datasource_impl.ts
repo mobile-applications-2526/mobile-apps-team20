@@ -27,7 +27,6 @@ export class UserProfileDataSourceImpl implements UserProfileDataSource {
       const dto = await this.api.get<UserProfileResponseDTO>(
         `/user/username/${username}`
       );
-      console.log("PROFILE_DTO", username, dto);
       return mapProfileToFrontend(dto);
     } catch (error: unknown) {
       const axiosError = error as AxiosError;
