@@ -130,17 +130,18 @@ export default function EventForm({
         <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
           <Text style={styles.modalHeader}>{formLabel}</Text>
 
-          {/* Image picker area */}
-          <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
-            {imagePreviewUri ? (
-              <Image
-                source={{ uri: imagePreviewUri }}
-                style={styles.imagePreview}
-              />
-            ) : (
-              <Text style={styles.imagePickerText}>+ Add image</Text>
-            )}
-          </TouchableOpacity>
+        {/* Image picker area
+        <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
+          {imagePreviewUri ? (
+            <Image
+              source={{ uri: imagePreviewUri }}
+              style={styles.imagePreview}
+            />
+          ) : (
+            <Text style={styles.imagePickerText}>+ Add image</Text>
+          )}
+        </TouchableOpacity>
+        */}
 
           <Text style={styles.fieldLabel}>Event name</Text>
           <TextInput
