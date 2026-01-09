@@ -1,3 +1,4 @@
+import React from "react";
 import {
     View,
     Text,
@@ -7,88 +8,44 @@ import {
     ActivityIndicator,
     Image,
 } from "react-native";
-import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUserChatsStore } from "@/store/chat/use_user_chats_store";
-import { useCallback } from "react";
-import { useFocusEffect } from "@react-navigation/native";
 import { UserChatsView } from "@/domain/model/entities/chat/user_chat_view";
-import { useUserChatListSocket } from "@/hooks/chat/use_user_chat_list_socket";
-import { useUserAuthStore } from "@/store/auth/use_auth_store";
 import { processImage } from "@/domain/infrastructure/mappers/user_profile_mapper";
+import { useChatsPage } from "@/hooks/chat/use_chat_page";
 
 export default function ChatsScreen() {
-    const router = useRouter();
-    const user = useUserAuthStore((state) => state.user);
-    
     const { 
+        user,
         chats, 
         isLoading, 
-        fetchUserChats, 
-        refreshUserChats,
-        hasMore,
-        unSeenMessagesCount 
-    } = useUserChatsStore();
-
-    // Initialize socket listener for the list
-    useUserChatListSocket();
-
-    // Reload list logic
-    useFocusEffect(
-        useCallback(() => {
-            refreshUserChats();
-        }, []) // Dependencies removed to ensure it runs on focus events correctly
-    );
-
-    const openChat = (
-        chatId: string,
-        eventName: string,
-        eventId: string,
-        eventImage?: string,
-        currentUnseenCount?: number 
-    ) => {
-        router.push({
-            pathname: "/(private)/chat/[id]",
-            params: {
-                id: chatId,
-                name: eventName,
-                image: eventImage,
-                eventId: eventId,
-                unseenCount: currentUnseenCount 
-            },
-        });
-    };
-
-    const formatTime = (isoString?: string) => {
-        if (!isoString) return "";
-        try {
-            const date = new Date(isoString);
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        } catch {
-            return "";
-        }
-    };
+        unSeenMessagesCount, 
+        handleOpenChat, 
+        handleLoadMore,
+        formatTime 
+    } = useChatsPage();
 
     const renderItem = ({ item }: { item: UserChatsView }) => {
         const imageUri = processImage(item.eventImage);
         const isMe = item.lastMessage?.senderName === user?.username;
         const lastMessageUsername = isMe ? "You" : item.lastMessage?.senderName;
 
+        // Calculate unseen messages priority (Store > Entity)
         const storeCount = unSeenMessagesCount[item.id];
         const count = storeCount !== undefined ? storeCount : item.unseenMessagesCount;
-        
         const hasUnseen = count > 0;
 
         return (
-            <TouchableOpacity style={styles.row} onPress={
-                () => openChat(
+            <TouchableOpacity 
+                style={styles.row} 
+                onPress={() => handleOpenChat(
                     item.id, 
                     item.eventName, 
                     item.eventId, 
                     item.eventImage,
                     count 
-                )
-            }>
+                )}
+            >
+                {/* Avatar Section */}
                 {imageUri ? (
                     <Image source={{ uri: imageUri }} style={styles.avatar} />
                 ) : (
@@ -99,6 +56,7 @@ export default function ChatsScreen() {
                     </View>
                 )}
 
+                {/* Info Section */}
                 <View style={styles.textArea}>
                     <Text style={styles.name}>{item.eventName}</Text>
                     <Text style={styles.lastMessage} numberOfLines={1}>
@@ -109,7 +67,7 @@ export default function ChatsScreen() {
                     </Text>
                 </View>
                 
-                {/* Meta column for Time and Badge */}
+                {/* Meta Section (Time & Badge) */}
                 <View style={styles.metaContainer}>
                     <Text style={[styles.time, hasUnseen && styles.activeTime]}>
                         {formatTime(item.lastMessage?.sentAt)}
@@ -140,14 +98,10 @@ export default function ChatsScreen() {
                     <FlatList
                         data={chats}
                         extraData={unSeenMessagesCount} 
-                        keyExtractor={(item: UserChatsView) => String(item.id)}
+                        keyExtractor={(item) => String(item.id)}
                         renderItem={renderItem}
                         contentContainerStyle={{ paddingVertical: 12 }}
-                        onEndReached={() => {
-                            if (chats.length > 0 && hasMore && !isLoading) {
-                                fetchUserChats();
-                            }
-                        }}
+                        onEndReached={handleLoadMore}
                         onEndReachedThreshold={0.5}
                         ListEmptyComponent={
                             <View style={styles.center}>
