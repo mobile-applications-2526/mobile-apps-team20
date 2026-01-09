@@ -1,14 +1,16 @@
 import React from "react";
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 // Interfaz para los datos que esperamos recibir
 export interface PublicUserProps {
   username?: string;
+  profileImage?: string | null;
   interests: string[];
   bio?: string;
   languages?: string[];
@@ -55,9 +57,16 @@ export default function PublicProfileScreen({ user }: { user: PublicUserProps })
         
         {/* Avatar Area */}
         <View style={styles.avatarWrapper}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initial}</Text>
-          </View>
+          {user.profileImage ? (
+            <Image
+              source={{ uri: user.profileImage }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initial}</Text>
+            </View>
+          )}
         </View>
 
         {/* Basic Info */}
@@ -113,6 +122,11 @@ const styles = StyleSheet.create({
     marginTop: 40,
     alignItems: "center",
     justifyContent: "center",
+  },
+  avatarImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
   },
   avatar: {
     width: 96,

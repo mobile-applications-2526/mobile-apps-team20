@@ -9,7 +9,10 @@ export interface UserProfileDataSource {
   getMyProfile(): Promise<UserProfile>;
 
   /** PUT /api/user/me */
-  updateMyProfile(userProfileId: string, payload: UserProfileUpdateRequest): Promise<UserProfile>;
+  updateMyProfile(
+    userProfileId: string,
+    payload: FormData | UserProfileUpdateRequest
+  ): Promise<UserProfile>;
 
   /** * GET /api/users/{id} 
    */

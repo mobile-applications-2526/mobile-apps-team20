@@ -1,12 +1,12 @@
-import React, { useEffect } from "react";
-import { useLocalSearchParams, Stack } from "expo-router";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
 import PublicProfileScreen, { PublicUserProps } from "@/components/user/public_profile_screen";
+import { Stack, useLocalSearchParams } from "expo-router";
+import React, { useEffect } from "react";
+import {
+    ActivityIndicator,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 // Import the global store
 import { useUserProfileStore } from "@/store/user/use_user_profile_store";
 
@@ -56,6 +56,7 @@ export default function UserProfilePage() {
   // Map the Domain Entity (UserProfile) from the store to the UI Component Props (PublicUserProps).
   const userProps: PublicUserProps = {
     username: publicProfile.name,
+    profileImage: publicProfile.profileImage ?? null,
     interests: publicProfile.interests || [],
     bio: publicProfile.bio,
     city: publicProfile.city,

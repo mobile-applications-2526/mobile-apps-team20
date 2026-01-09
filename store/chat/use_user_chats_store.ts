@@ -167,7 +167,7 @@ export const useUserChatsStore = create<UserChatsState>((set, get) => ({
     const chatIndex = currentChats.findIndex((c) => c.id === newMessage.chatId);
 
     if (chatIndex === -1) {
-        state.fetchUserChats();
+        state.refreshUserChats();
         return;
     }
 

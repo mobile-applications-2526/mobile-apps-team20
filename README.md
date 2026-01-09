@@ -105,6 +105,8 @@ Our goal is to make student life more social, inclusive, and connected by loweri
 
 ## 📄 License
 
-This project was created as part of a school project.
+- ➕ **Create Your Own Events**
+  - Create and host events for other students
+  - Set event details such as time, location, and description
 
 Licensing details may be updated in the future.

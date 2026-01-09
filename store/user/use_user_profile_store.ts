@@ -1,9 +1,9 @@
-import { create } from "zustand";
 import { container } from "@/dependency_injection/container";
 import { UserProfileUpdateRequest } from "@/domain/model/dto/user/user_profile_update_request";
 import { UserProfile } from "@/domain/model/entities/events/user_profile";
 import { getErrorMessage } from "@/shared/utils/error_utils";
 import { useUserAuthStore } from "@/store/auth/use_auth_store";
+import { create } from "zustand";
 
 interface UserProfileStore {
   // --- Authenticated User State ---
@@ -23,7 +23,7 @@ interface UserProfileStore {
 
   // --- Actions for Authenticated User ---
   fetchProfile: () => Promise<void>;
-  updateProfile: (payload: UserProfileUpdateRequest) => Promise<void>;
+  updateProfile: (payload: FormData | UserProfileUpdateRequest) => Promise<void>;
   
   // --- Actions for Public User ---
   /** Fetches a user profile by ID for read-only display. */
@@ -62,7 +62,7 @@ export const useUserProfileStore = create<UserProfileStore>((set, get) => ({
     }
   },
 
-  updateProfile: async (payload: UserProfileUpdateRequest) => {
+  updateProfile: async (payload: FormData | UserProfileUpdateRequest) => {
     set({ isLoading: true, error: null });
     try {
       const current = get().profile;
