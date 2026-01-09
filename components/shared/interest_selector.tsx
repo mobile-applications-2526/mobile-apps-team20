@@ -2,7 +2,8 @@ import { InterestTag } from "@/domain/model/enums/interest_tag";
 import React, { useMemo } from "react";
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-const AVAILABLE_INTERESTS = Object.values(InterestTag);
+const AVAILABLE_INTERESTS = Object.values(InterestTag)
+                             .filter(tag => tag !== InterestTag.ALL);
 
 interface InterestSelectorProps {
   selectedInterestsString: string;
